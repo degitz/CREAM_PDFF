@@ -29,5 +29,4 @@ function [arrayScaled, rescaleSlope, rescaleIntercept] = scale_array2interval(ar
     tol = 1e-3;
     assert(abs(min(arrayScaled(:)) - min(intervalVector(:))) <= tol);
     assert(abs(max(arrayScaled(:)) - max(intervalVector(:))) <= tol);
-
 end

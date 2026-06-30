@@ -20,10 +20,10 @@ function VARPROparamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoP
     VARPROparamsout.validParams = validParams;
     
     dTE = diff(imDataParams.TE);
-    if sum(abs(dTE - dTE(1)))<1e-6 % If we have uniform TE spacing
+    if sum(abs(dTE - dTE(1))) < 1e-6 % If we have uniform TE spacing
         dt = imDataParams.TE(2) - imDataParams.TE(1);
         fprintf('Uniform TE spacing: Period = TE(2) - TE(1)\n');
-    else
+    else % options:dt = #1) TE2-TE1, #2) TE7-TE6, #3) (#1+#2)/2 #4 (#1*6+#2)/7
         dt = imDataParams.TE(4) - imDataParams.TE(3);
         fprintf('Non-uniform TE spacing detected, assuming 2 UTE echos: Period = TE(4) - TE(3)\n');
     end    

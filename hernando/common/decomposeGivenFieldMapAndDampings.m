@@ -37,15 +37,15 @@ function [amps,remerror] = decomposeGivenFieldMapAndDampings( imDataParams,algoP
 
 
 try
-  precessionIsClockwise = imDataParams.PrecessionIsClockwise;
+    precessionIsClockwise = imDataParams.PrecessionIsClockwise;
 catch
-  precessionIsClockwise = 1;
+    precessionIsClockwise = 1;
 end
 
 try 
   ampW = algoParams.species(1).relAmps;
 catch
-  ampW = 1.0
+  ampW = 1.0;
 end
 
   
@@ -68,11 +68,10 @@ C = size(images,4);
 
 relAmps = reshape(relAmps,1,[]);
 
-
 B1 = zeros(N,2);
 B = zeros(N,2);
 for n=1:N
-  B1(n,:) = [ampW*exp(j*2*pi*deltaF(1)*t(n)),sum(relAmps(:).*exp(j*2*pi*deltaF(2:end)*t(n)))];
+  B1(n,:) = [ampW*exp(1i*2*pi*deltaF(1)*t(n)),sum(relAmps(:).*exp(1i*2*pi*deltaF(2:end)*t(n)))];
 end
 
 remerror = zeros(sx,sy);
@@ -80,8 +79,8 @@ for kx =1:sx
   for ky=1:sy
     s = reshape( squeeze(images(kx,ky,:,:,:)), [C N]).';
 
-    B(:,1) = B1(:,1).*exp(j*2*pi*fieldmap(kx,ky)*t(:) - r2starWater(kx,ky)*t(:));
-    B(:,2) = B1(:,2).*exp(j*2*pi*fieldmap(kx,ky)*t(:) - r2starFat(kx,ky)*t(:));
+    B(:,1) = B1(:,1).*exp(1i*2*pi*fieldmap(kx,ky)*t(:) - r2starWater(kx,ky)*t(:));
+    B(:,2) = B1(:,2).*exp(1i*2*pi*fieldmap(kx,ky)*t(:) - r2starFat(kx,ky)*t(:));
 
     amps(kx,ky,:,:) = B\s;
 
@@ -90,5 +89,3 @@ for kx =1:sx
     end
   end
 end
-
-

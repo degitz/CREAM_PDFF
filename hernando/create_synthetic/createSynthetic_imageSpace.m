@@ -59,56 +59,56 @@ end
 
   
 try 
-  r2starmap = trueParams.r2starmap;
+    r2starmap = trueParams.r2starmap;
 catch 
-  r2starmap = zeros(sx,sy);
+    r2starmap = zeros(sx,sy);
 end
-  
+
 try 
-  fieldmap = trueParams.fieldmap;
+    fieldmap = trueParams.fieldmap;
 catch 
-  fieldmap = zeros(sx,sy);
+    fieldmap = zeros(sx,sy);
 end
-  
+
 imDataParams.images = zeros(sx,sy,sz,C,N);
 for ks=1:length(trueParams.species)
-  amps = trueParams.species(ks).amps;
+    amps = trueParams.species(ks).amps;
 
-  try 
-    freqs = gyro*fieldStrength*algoParams.species(ks).frequency;
-  catch 
-    freqs = 0;
-  end
-   
-  try
-    relAmps = algoParams.species(ks).relAmps;
-  catch
-    relAmps = ones(size(freqs))/length(freqs);
-  end
-  
-  s = zeros(1,1,1,1,N);
-  fieldAndR2starEffect = zeros(sx,sy,sz,C,N);
-  for kt=1:N
-    s(1,1,1,1,kt) = sum(relAmps(:).*exp(j*2*pi*freqs(:)*t(kt)));
-    fieldAndR2starEffect(:,:,:,:,kt) = exp(-t(kt)*repmat(r2starmap,[1 1 1 C]) + j*2*pi*t(kt)*repmat(fieldmap,[1 1 1 C]));
-  end
-  
-  imDataParams.images = imDataParams.images + repmat(amps,[1 1 1 1 N]).*repmat(s,[sx sy sz C 1]).*fieldAndR2starEffect;
+    try
+        freqs = gyro*fieldStrength*algoParams.species(ks).frequency;
+    catch
+        freqs = 0;
+    end
+
+    try
+        relAmps = algoParams.species(ks).relAmps;
+    catch
+        relAmps = ones(size(freqs))/length(freqs);
+    end
+
+    s = zeros(1,1,1,1,N);
+    fieldAndR2starEffect = zeros(sx,sy,sz,C,N);
+    for kt=1:N
+        s(1,1,1,1,kt) = sum(relAmps(:).*exp(j*2*pi*freqs(:)*t(kt)));
+        fieldAndR2starEffect(:,:,:,:,kt) = exp(-t(kt)*repmat(r2starmap,[1 1 1 C]) + j*2*pi*t(kt)*repmat(fieldmap,[1 1 1 C]));
+    end
+
+    imDataParams.images = imDataParams.images + repmat(amps,[1 1 1 1 N]).*repmat(s,[sx sy sz C 1]).*fieldAndR2starEffect;
 end
 
 
 %%   - imDataParams.PrecessionIsClockwise (1 = fat has positive frequency; -1 = fat has negative frequency)
 try
-  imDataParams.PrecessionIsClockwise = imDataParams0.PrecessionIsClockwise;
-  if imDataParams.PrecessionIsClockwise <= 0 
-    imDataParams.PrecessionIsClockwise == -1;
-  end
+    imDataParams.PrecessionIsClockwise = imDataParams0.PrecessionIsClockwise;
+    if imDataParams.PrecessionIsClockwise <= 0
+        imDataParams.PrecessionIsClockwise = -1;
+    end
 catch 
-  imDataParams.PrecessionIsClockwise = -1;
+    imDataParams.PrecessionIsClockwise = -1;
 end
 
 % If precession is clockwise, make everything rotate in the opposite direction
 if imDataParams.PrecessionIsClockwise < 0
-  imDataParams.images = conj(imDataParams.images);
+    imDataParams.images = conj(imDataParams.images);
 end
 

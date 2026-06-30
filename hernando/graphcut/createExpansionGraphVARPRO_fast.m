@@ -22,7 +22,7 @@
 %Date last update: October 21, 2009
 %--------------------------------------------------------------------------
 
-function [A,Aunsc] = createExpansionGraphVARPRO_fast( residual, dfm, lambda, size_clique, cur_ind, step )
+function [A,Aunsc] = createExpansionGraphVARPRO_fast(residual, dfm, lambda, size_clique, cur_ind, step)
 
 % Allocate space for the adjacency matrix A (which completely describes the graph)
 sx = size(residual,2);
@@ -63,7 +63,6 @@ for dx = -size_clique:size_clique
       validmapi = X+dx>=1 & X+dx<=sx & Y+dy>=1 & Y+dy<=sy;
       validmapj = X-dx>=1 & X-dx<=sx & Y-dy>=1 & Y-dy<=sy;
       
-      
       curfactor = min(factor(validmapi),factor(validmapj)); 
       
       a = curfactor.*(1./dist*(cur_ind(validmapi)-cur_ind(validmapj)).^2);
@@ -71,7 +70,6 @@ for dx = -size_clique:size_clique
       c = curfactor.*(1./dist*(step_ind(validmapi)-cur_ind(validmapj)).^2);
       d = curfactor.*(1./dist*(step_ind(validmapi)-step_ind(validmapj)).^2);
 
-      
       temp = zeros(1,s);
       temp(validmapi) = max(0,c-a);
       valsh = valsh + temp;
@@ -99,8 +97,6 @@ for dx = -size_clique:size_clique
     end
   end
 end
-
-
 
 ind1 = sub2ind(sA, ones(1,num_nodes-2),2:(num_nodes-1) );
 

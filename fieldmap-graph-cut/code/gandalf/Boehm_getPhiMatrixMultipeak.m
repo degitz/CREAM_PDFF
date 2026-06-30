@@ -17,11 +17,11 @@
 % Date created: Aug 27, 2008
 % Last modified: Aug 27, 2008
 %
-function Phi = Boehm_getPhiMatrixMultipeak( deltafs,relAmps, t )
+function Phi = Boehm_getPhiMatrixMultipeak(deltafs,relAmps, t)
 
-[DF,T] = meshgrid( deltafs,t );
-[A,T2] = meshgrid( relAmps,t );
+[DF,T] = meshgrid(deltafs,t);
+[A,T2] = meshgrid(relAmps,t);
 
 
-Phi1 = exp(j*2*pi*T.*DF);
+Phi1 = exp(1i*2*pi*T.*DF);
 Phi = [Phi1(:,1) , sum(Phi1(:,2:end).*A,2)];

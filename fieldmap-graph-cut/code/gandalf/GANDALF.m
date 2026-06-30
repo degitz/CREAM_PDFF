@@ -1,22 +1,22 @@
-%% Function name: GANDALF
-%%
-%% Description: Fat-water separation using a single-step graphcut with unequally sampled space and penalized fieldmap jumps.
-%%              + Variable Layer Graph Construction
-%%              The whole 3D Volume is minimized in a single step.
-%%
-%% AUTHOR:      Christof Boehm <christof.boehm@tum.de>
-%% AFFILIATION: Body Magnetic Resonance Research Group
-%%              Department of Diagnostic and Interventional Radiology
-%%              Technical University of Munich
-%%              Klinikum rechts der Isar
-%%              Ismaninger Str. 22, 81675 Muenchen
-%% URL:         http://www.bmrrgroup.de
-%%
-%% Date created: May 14, 2018
-%% Date last modified: September 7, 2018
+% Function name: GANDALF
+%
+% Description: Fat-water separation using a single-step graphcut with unequally sampled space and penalized fieldmap jumps.
+%              + Variable Layer Graph Construction
+%              The whole 3D Volume is minimized in a single step.
+%
+% AUTHOR:      Christof Boehm <christof.boehm@tum.de>
+% AFFILIATION: Body Magnetic Resonance Research Group
+%              Department of Diagnostic and Interventional Radiology
+%              Technical University of Munich
+%              Klinikum rechts der Isar
+%              Ismaninger Str. 22, 81675 Muenchen
+% URL:         http://www.bmrrgroup.de
+%
+% Date created: May 14, 2018
+% Date last modified: September 7, 2018
 
 function outParams = GANDALF(imDataParams, algoParams, VARPROparams)  
-    
+
     % algoParams.range_r2star = VARPROparams.range_r2star;
     % algoParams.NUM_R2STARS = VARPROparams.NUM_R2STARS;
     INFTY = 100000000;
@@ -35,8 +35,6 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     nVoxel = nVoxel_X * nVoxel_Y * nVoxel_Z;
     S_Node_ID = nNodes + 1;
     T_Node_ID = nNodes + 2;
-    
-    
     
     %% Calculate Noise Weighting
     MIP = get_echoMIP(imDataParams.images);
@@ -116,7 +114,6 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         InterColumnEdges = zeros( ceil(2 * nMeanfullVoxel * meanNodesPerVoxel^3), 3); 
     end
 
-    
     rem = 1;
     reverseStr = '';
 
@@ -162,7 +159,6 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
                             node1 = NodeIndicies(Y, X, Z, N1);
                             node2 = NodeIndicies(Y, X+1, Z, N2);
 
-
                             if (weight > 0) && (a3 ~= 0)
                                 InterColumnEdges(rem, 1) = node1;
                                 InterColumnEdges(rem, 2) = node2;
@@ -188,7 +184,6 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
             for X = 1:nVoxel_X-1
                 if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y, X+1, Z) ~= 0)
                     for N1 = 1:nMinimaPerVoxel(Y, X+1, Z)
-
                         % Edges from b to t
                         [a1, a2, a3] = deal(0);
                         a1 = indexLocalMinimaRescale(Y, X+1, Z, N1);
@@ -206,7 +201,6 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
                             rem = rem + 1;
                             weight = 0;
                         end  
-
 
                         for N2 = 2:nMinimaPerVoxel(Y, X, Z)
                             % Edges from b to a
@@ -236,10 +230,8 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         end
     end
 
-
     t1 = toc(t1);
     fprintf('Done! (%.2fs)\n', t1);
-
 
     %% Edges in Y-Direction
     fprintf('Calculating Edges in Y-Direction... ');
@@ -313,7 +305,6 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
             for X = 1:nVoxel_X
                 if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y+1, X, Z) ~= 0)
                     for N1 = 1:nMinimaPerVoxel(Y+1, X, Z)
-
                         % Edges from b to t
                         [a1, a2, a3] = deal(0);
                         a1 = indexLocalMinimaRescale(Y+1, X, Z, N1);
@@ -360,14 +351,12 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         end
     end
 
-
     t1 = toc(t1);
     fprintf('Done! (%.2fs)\n', t1);
 
     %% Edges in Z-Direction
 
     if nVoxel_Z > 1
-
         fprintf('Calculating Edges in Z-Direction... ');
         t1 = tic;
         reverseStr = '';
@@ -399,7 +388,7 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
                                 InterColumnEdges(rem, 3) = weight;
                                 rem = rem + 1;
                                 weight = 0;
-                            end 
+                            end
 
                             for N2 = 2:nMinimaPerVoxel(Y, X, Z+1)
                                 % forwards
@@ -456,7 +445,7 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
                                 InterColumnEdges(rem, 3) = weight;
                                 rem = rem + 1;
                                 weight = 0;
-                            end 
+                            end
 
                             for N2 = 2:nMinimaPerVoxel(Y, X, Z)
                                 % backwards
@@ -512,7 +501,6 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     t = tic;
     [~, ~, cs, ~] = maxflow(G, S_Node_ID, T_Node_ID);
     t = toc(t);
-    
     fprintf('Done! (%.2fs)\n', t);
 
     %% Reconstruct fm
@@ -585,8 +573,8 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     fprintf('Done!\n');
 
     %% Transfer results into outParams structure
-    outParams.water = water .* masksignal;
-    outParams.fat = fat .* masksignal;
+    outParams.water = water.*masksignal;
+    outParams.fat = fat.*masksignal;
     outParams.fieldmap = dfm;
-    outParams.r2starmap = r2starmap .* masksignal;
+    outParams.r2starmap = r2starmap.*masksignal;
 end

@@ -1,4 +1,4 @@
-function [params sse] = presco(te,data,Tesla,varargin)
+function [params, sse] = presco(te,data,Tesla,varargin)
 %[params sse] = presco(te,data,Tesla,varargin)
 %[params sse] = presco(imDataParams,varargin)
 %
@@ -27,7 +27,7 @@ function [params sse] = presco(te,data,Tesla,varargin)
 
 % demo code
 if nargin==0
-    load invivo.mat;
+    load invivo.mat; %#ok<LOAD>
     %load PHANTOM_NDB_PAPER.mat
     %load liver_gre_3d_2x3.mat; data = data(:,:,27,:);
     %load liver_gre_3d_1x6.mat; data = data(:,:,26,:); 
@@ -38,19 +38,19 @@ elseif isa(te,'struct')
     if te.PrecessionIsClockwise<0; data = conj(data); end
     Tesla = te.FieldStrength; % Tesla
     te = te.TE; % seconds
-    [nx ny nz nc ne] = size(data);
+    [nx, ny, nz, nc, ne] = size(data);
     if nc>1; data = matched_filter(data); end
     data = reshape(data,nx,ny,nz,ne);
 end
 
 %% options
-% options CREAM
-opts.kspace_shift = 0;
+% Default options CREAM
+opts.kspace_shift = 0; % shifting of k-space (1=on, 0=off)
 
 % constraints
 opts.muB = 0.00; % regularization for B0
 opts.muR = 0.01; % regularization for R2*
-opts.nonnegFF = 1; % nonnegative pdff (1=on 0=off)
+opts.nonnegFF = 1; % nonnegative pdff (1=on 0=off)              Default = 0
 opts.nonnegR2 = 1; % nonnegative R2* (1=on 0=off)
 opts.smooth_phase = 1; % smooth phase (1=on 0=off)
 opts.smooth_field = 1; % smooth field (1=on 0=off)
@@ -69,7 +69,7 @@ opts.display = 1; % useful but slow (0 to turn off)
 opts.none = 0; % quick flag turn off all constraints
 
 % Add spectrum model
-opts.gyro =42.57747892;
+opts.gyro = 42.5774780505984;
 opts.species(1).name = 'water';
 opts.species(1).frequency = 0;
 opts.species(1).relAmps = 1;
@@ -109,8 +109,7 @@ elseif ndims(data)==2 && size(data,2)==numel(te)
     data = permute(data,[1 3 4 2]);
 elseif ndims(data)==3 && size(data,3)==numel(te)
     data = permute(data,[1 2 4 3]);
-elseif ndims(data)==4 && size(data,4)==numel(te)
-else
+elseif ndims(data)~=4 || size(data,4)~=numel(te)
     error('data [%s\b] not compatible with te [%s\b].',...
     sprintf('%i ',size(data)),sprintf('%i ',size(te)));
 end
@@ -119,12 +118,12 @@ if max(te)>1
 end
 if ~issorted(te)
     warning('''te'' should be sorted. Sorting.');
-    [te k] = sort(te); data = data(:,:,:,k);
+    [te, k] = sort(te); data = data(:,:,:,k);
 end
 if isreal(data) || ~isfloat(data)
     error('data should be complex floats.');
 end
-[nx ny nz ne] = size(data);
+[nx, ny, nz, ne] = size(data);
 
 %% setup
 
@@ -144,7 +143,7 @@ end
 % time evolution matrix
 te = real(cast(te,'like',data));
 %[opts.A opts.psif] = fat_basis(te,Tesla,opts.ndb,opts.h2o);
-[opts.A opts.psif] = fat_basis_CREAM(te,Tesla,opts);
+[opts.A, opts.psif] = fat_basis_CREAM(te,Tesla,opts);
 % display
 disp([' Data size: [' sprintf('%i ',size(data)) sprintf('\b]')])
 disp([' TE (ms): ' sprintf('%.2f ',1000*te(:))])
@@ -164,7 +163,7 @@ if opts.kspace_shift
     data = fft(fft2(data),[],3);
     tmp = dot(data,data,4);
     [~,k] = max(tmp(:));
-    [dx dy dz] = ind2sub([nx ny nz],k);
+    [dx, dy, dz] = ind2sub([nx ny nz],k);
     data = circshift(data,1-[dx dy dz]);
     data = ifft(ifft2(data),[],3).*(mask>0);
     fprintf(' Shifting kspace center from [%i %i %i]\n',dx,dy,dz);
@@ -172,22 +171,22 @@ end
 
 opts.mask = mask > opts.noise^2;
 
-%% initial estimates
+%% initial estimate of psi
 
 if isempty(opts.psi)
 
     % dominant frequency (rad/s)
     tmp = dot(data(:,:,:,1:ne-1),data(:,:,:,2:ne),4);
-    psi = angle(tmp)/min(diff(te))+i*imag(opts.psif);
+    psi = angle(tmp)/min(diff(te))+1i*imag(opts.psif);
 
     othertmp = dot(data(:,:,:,1:min(ne-1,3)),data(:,:,:,2:min(ne,4)),4);
     dte=diff(te);
-    psi = angle(othertmp)/min(dte(1:min(ne-1,4)))+i*imag(opts.psif);
+    psi = angle(othertmp)/min(dte(1:min(ne-1,4)))+1i*imag(opts.psif);
     init_psi = psi;
 else
     
     % supplied psi (convert to rad/s)
-    psi = 2*pi*real(opts.psi)+i*imag(opts.psi);
+    psi = 2*pi*real(opts.psi)+1i*imag(opts.psi);
     
     if isscalar(psi)
         psi = repmat(psi,nx,ny,nz);
@@ -209,7 +208,7 @@ try
     fprintf(' GPU found = %s (%.1f Gb)\n',gpu.Name,gpu.AvailableMemory/1e9);
 catch ME
     data = gather(data);
-    warning('%s. Using CPU.',ME.message);
+    warning('%s. Using CPU.',ME.message); %#ok<MEXCEP>
 end
 
 % echos in 1st dim
@@ -263,7 +262,7 @@ for iter = 1:opts.maxit(2)
     end
     
     % local optimization
-    [r psi phi x] = nlsfit(psi,te,data,opts);
+    [r, psi, phi, x] = nlsfit(psi,te,data,opts);
     fprintf(' Iter %i\t%f\n',iter,norm(r(:)));
     
     % deal with pixel swapping
@@ -283,7 +282,7 @@ for iter = 1:opts.maxit(2)
             % low pass filtering
             B0 = real(squeeze(psi));
             B0 = medfiltn(B0,size(opts.filter),opts.mask);
-            psi = reshape(B0,size(psi))+i*imag(psi);
+            psi = reshape(B0,size(psi))+1i*imag(psi);
         end
     end
 
@@ -302,7 +301,7 @@ params.W = gather(squeeze(x(1,:,:,:)));
 sse = gather(squeeze(real(dot(r,r)))); % sum of squares error
 
 %% nonlinear least squares fitting
-function [r psi phi x] = nlsfit(psi,te,data,opts)
+function [r, psi, phi, x] = nlsfit(psi,te,data,opts)
 
 % regularizer (smooth B0 + zero R2)
 PSI = real(psi);
@@ -310,7 +309,7 @@ PSI = real(psi);
 for iter = 1:opts.maxit(1)
 
     % residual and Jacobian J = [JB JR]
-    [r phi x JB JR] = pclsr(psi,te,data,opts);
+    [r, phi, x, JB, JR] = pclsr(psi,te,data,opts);
     
     % gradient G = J'*r = [gB gR]
     gB = real(dot(JB,r))+opts.muB.^2.*real(psi-PSI);
@@ -346,7 +345,7 @@ for iter = 1:opts.maxit(1)
 end
 
 % final phi and x
-[r phi x] = pclsr(psi,te,data,opts);
+[r, phi, x] = pclsr(psi,te,data,opts);
 
 % display (slow and ugly)
 tmp = transform(psi,opts);
@@ -376,18 +375,18 @@ if any(~isfinite(psi(:)))
 end
 
 %% phase constrained least squares residual r=W*A*x*exp(i*phi)-b
-function [r phi x JB JR] = pclsr(psi,te,b,opts)
+function [r, phi, x, JB, JR] = pclsr(psi,te,b,opts)
 
 % note echos in dim 1
-[ne nx ny nz] = size(b);
+[ne, nx, ny, nz] = size(b);
 b = reshape(b,ne,nx*ny*nz);
 psi = reshape(psi,1,nx*ny*nz);
 
 % change of variable
-[tpsi dR2] = transform(psi,opts);
+[tpsi, dR2] = transform(psi,opts);
 
 % complex fieldmap
-W = exp(i*te*tpsi);
+W = exp(1i*te*tpsi);
 
 % M = Re(A'*W'*W*A) is a 2x2 matrix [M1 M2;M2 M3]
 % with inverse [M3 -M2;-M2 M1]/dtm (determinant)
@@ -413,12 +412,12 @@ if opts.smooth_phase
     p = reshape(p,1,nx*ny*nz);
 end
 phi = angle(p)/2; % -pi/2<phi<pi/2
-x = real(bsxfun(@times,z,exp(-i*phi)));
+x = real(bsxfun(@times,z,exp(-1i*phi)));
 
 % absorb sign of x into phi
-x = bsxfun(@times,x,exp(i*phi));
+x = bsxfun(@times,x,exp(1i*phi));
 phi = angle(sum(x)); % -pi<phi<pi
-x = real(bsxfun(@times,z,exp(-i*phi)));
+x = real(bsxfun(@times,z,exp(-1i*phi)));
 
 % box constraint (0<=FF<=1)
 if opts.nonnegFF
@@ -428,7 +427,7 @@ if opts.nonnegFF
     x = bsxfun(@times,abs(a),x);
     phi = angle(a);
     if opts.smooth_phase
-        p = abs(p).*exp(i*phi);
+        p = abs(p).*exp(1i*phi);
         p = reshape(p,nx,ny,nz,1);
         p = convn(p,opts.filter,'same');
         p = reshape(p,1,nx*ny*nz);
@@ -437,7 +436,7 @@ if opts.nonnegFF
 end
 
 % residual
-eiphi = exp(i*phi);
+eiphi = exp(1i*phi);
 WAx = W.*(opts.A*x);
 r = bsxfun(@times,WAx,eiphi);
 r = reshape(r-b,ne,nx,ny,nz);
@@ -467,11 +466,11 @@ s = z(1,:).*H1.*z(1,:) + z(2,:).*H3.*z(2,:)...
 %% real part (B0): JB
 
 % first term
-JB = bsxfun(@times,i*te,WAx);
+JB = bsxfun(@times,1i*te,WAx);
 
 % second term
 dphi = -real(q./p); dphi(p==0) = 0;
-JB = JB + bsxfun(@times,WAx,i*dphi);
+JB = JB + bsxfun(@times,WAx,1i*dphi);
 
 % third term
 dx = y + bsxfun(@times,z,dphi);
@@ -488,10 +487,10 @@ JR = bsxfun(@times,-te,WAx);
 
 % second term
 dphi = -imag(q./p)+imag(s./p); dphi(p==0) = 0;
-JR = JR + bsxfun(@times,WAx,i*dphi);
+JR = JR + bsxfun(@times,WAx,1i*dphi);
 
 % third term
-dx = y + bsxfun(@times,z,i*dphi);
+dx = y + bsxfun(@times,z,1i*dphi);
 dx = real(bsxfun(@times,dx,-1./eiphi));
 
 Hx = [H1.*x(1,:)+H2.*x(2,:);H3.*x(2,:)+H2.*x(1,:)];
@@ -514,7 +513,7 @@ JR = reshape(JR,ne,nx,ny,nz);
 phi = reshape(phi,1,nx,ny,nz);
 
 %% change of variable for nonnegative R2*
-function [tpsi dR2] = transform(psi,opts)
+function [tpsi, dR2] = transform(psi,opts)
 
 B0 = real(psi);
 R2 = imag(psi);
@@ -574,4 +573,4 @@ nwraps = round(center_freq / alias_freq); % no. of wraps
 B0(opts.mask) = B0(opts.mask)-gather(nwraps*alias_freq);
 
 % back to complex
-psi = reshape(B0,size(psi))+i*imag(psi);
+psi = reshape(B0,size(psi))+1i*imag(psi);

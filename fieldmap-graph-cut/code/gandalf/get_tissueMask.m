@@ -1,6 +1,7 @@
 function tissueMask = get_tissueMask(signal, airSignalThreshold_percent)
 % tissueMask = get_tissueMask(signal, airSignalThreshold_percent)
 
+    % Combine if multiple echoes
     echoMIP = get_echoMIP(signal);
 
     threshold = airSignalThreshold_percent/100 * max(echoMIP(:));

@@ -1,4 +1,4 @@
-function [A psif ampl freq] = fat_basis_CREAM(te,Tesla,algoParams)
+function [A, psif, ampl, freq] = fat_basis_CREAM(te,Tesla,algoParams)
 % [A psif ampl freq] = fat_basis(te,Tesla,NDB,H2O,units)
 %
 % Function that produces the fat-water matrix. Units can be adjusted
@@ -29,7 +29,7 @@ if max(te)<1e-3 || max(te)>1
 end
 
 %% fat water matrix
-disp(Tesla)
+% disp(Tesla)
 % put variables in the right format
 ne = numel(te);
 te = reshape(te,ne,1);
@@ -41,7 +41,7 @@ water=algoParams.species(1).relAmps*ones(ne,1);
 ampl=algoParams.species(2).relAmps;
 
 freq=larmor*(algoParams.species(2).frequency-algoParams.species(1).frequency);
-FatA = ampl.*exp(2*pi*i*te*freq);
+FatA = ampl.*exp(2*pi*1i*te*freq);
 fat=sum(FatA,2);
 
 A = [water fat];
@@ -60,7 +60,7 @@ end
 % exponential fitting function
 function normr = myfun(psif,te,data)
 psif = complex(psif(1),psif(2));
-f = exp(i*psif*te); % function
+f = exp(1i*psif*te); % function
 v = (f'*data)/(f'*f); % varpro
 r = v*f-data; % residual
 normr = double(gather(norm(r)));
