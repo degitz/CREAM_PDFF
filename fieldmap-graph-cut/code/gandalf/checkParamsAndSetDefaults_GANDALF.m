@@ -1,4 +1,4 @@
-function algoParamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoParams, verbose)
+function VARPROParamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoParams, verbose)
 
     % Check for verbose flag
     if nargin < 3
@@ -22,7 +22,7 @@ function algoParamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoPar
       disp('ERROR: 3+ point recon -- please use a different recon for acquisitions with fewer than 3 TEs')
       validParams = 0;
     end
-    VARPROparamsout.validParams = validParams;
+    VARPROParamsout.validParams = validParams;
     
     dTE = diff(imDataParams.TE);
     if sum(abs(dTE - dTE(1))) < 1e-6 % If we have uniform TE spacing
@@ -37,34 +37,42 @@ function algoParamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoPar
         end
     end    
     
-    VARPROparamsout.species = algoParams.species;
-    VARPROparamsout.useCUDA = set_option(algoParams, 'useCUDA', 1);
-    VARPROparamsout.range_r2star = set_option(algoParams, 'range_r2star', [0 500]);
-    VARPROparamsout.NUM_R2STARS = set_option(algoParams, 'NUM_R2STARS', 26);
-    VARPROparamsout.sampling_stepsize = set_option(algoParams, 'sampling_stepsize', 2);
-    VARPROparamsout.nSamplingPeriods = set_option(algoParams, 'nSamplingPeriods', 1);
-    VARPROparamsout.airSignalThreshold_percent = set_option(algoParams, 'airSignalThreshold_percent', 5);
-    VARPROparamsout.gyro = set_option(algoParams, 'gyro', 42.57747892);
-    VARPROparamsout.period = abs(1/dt);
+    VARPROParamsout.species = algoParams.species;
+    VARPROParamsout.useCUDA = set_option(algoParams, 'useCUDA', 1);
+    VARPROParamsout.range_r2star = set_option(algoParams, 'range_r2star', [0 500]);
+    VARPROParamsout.NUM_R2STARS = set_option(algoParams, 'NUM_R2STARS', 26);
+    VARPROParamsout.sampling_stepsize = set_option(algoParams, 'sampling_stepsize', 2);
+    VARPROParamsout.nSamplingPeriods = set_option(algoParams, 'nSamplingPeriods', 1);
+    VARPROParamsout.airSignalThreshold_percent = set_option(algoParams, 'airSignalThreshold_percent', 5);
+    VARPROParamsout.gyro = set_option(algoParams, 'gyro', 42.5774780505984);
+    VARPROParamsout.period = abs(1/dt);
     
     if isfield(algoParams, 'range_fm')
-        VARPROparamsout.range_fm = algoParams.range_fm;
-        VARPROparamsout.nSamplingPeriods = abs(diff(VARPROparamsout.range_fm)) / VARPROparamsout.period;
+        VARPROParamsout.range_fm = algoParams.range_fm;
+        VARPROParamsout.nSamplingPeriods = abs(diff(VARPROParamsout.range_fm))/VARPROParamsout.period;
     else
-        VARPROparamsout.nSamplingPeriods = set_option(algoParams, 'nSamplingPeriods', 1);
-        VARPROparamsout.range_fm = [(-VARPROparamsout.nSamplingPeriods * VARPROparamsout.period / 2) (2*VARPROparamsout.sampling_stepsize + VARPROparamsout.nSamplingPeriods * VARPROparamsout.period / 2)];
+        VARPROParamsout.nSamplingPeriods = set_option(algoParams, 'nSamplingPeriods', 1);
+        VARPROParamsout.range_fm = [(-VARPROParamsout.nSamplingPeriods*VARPROParamsout.period/2) (2*VARPROParamsout.sampling_stepsize + VARPROParamsout.nSamplingPeriods*VARPROParamsout.period/2)];
     end
     
-    disctreizationintervall = ceil( diff(VARPROparamsout.range_fm) );
-    Numlayers = ceil( disctreizationintervall / VARPROparamsout.sampling_stepsize );
+    disctreizationintervall = ceil(diff(VARPROParamsout.range_fm));
+    Numlayers = ceil(disctreizationintervall/VARPROParamsout.sampling_stepsize);
     if verbose
         fprintf('Numlayers = %i', Numlayers)
     end
     
-    VARPROparamsout.NUM_FMS = Numlayers;
-    t = linspace(VARPROparamsout.range_fm(1), VARPROparamsout.range_fm(2), VARPROparamsout.NUM_FMS);
+    VARPROParamsout.NUM_FMS = Numlayers;
+    t = linspace(VARPROParamsout.range_fm(1), VARPROParamsout.range_fm(2), VARPROParamsout.NUM_FMS);
     gridspacing = t(2)-t(1);
-    disp(["gridspacing",gridspacing])
-    disp(["gridspacing",VARPROparamsout.range_fm])
-    VARPROparamsout.gridspacing = gridspacing;
+
+    if verbose
+        fprintf('\ngridspacing = %f', gridspacing)
+        switch length(VARPROParamsout.range_fm)
+            case 2
+                fprintf('\n              %i %i\n', VARPROParamsout.range_fm(1), VARPROParamsout.range_fm(2))
+            case 3
+                fprintf('\n              %i %i %i\n', VARPROParamsout.range_fm(1), VARPROParamsout.range_fm(2), VARPROParamsout.range_fm(3))
+        end
+    end
+    VARPROParamsout.gridspacing = gridspacing;
 end
