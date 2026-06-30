@@ -121,8 +121,23 @@ end
 
 % Compute residual for all voxels and all field values
 % Note: the residual is computed in a vectorized way, for increased speed
-residual = zeros(NUM_FMS,sx,sy);
-% $$$   r2array = zeros(NUM_FMS,sx,sy,num_acq);
+if DEBUG
+    tic
+    fprintf('\nComputing residual for all voxels & field values...')
+end
+if algoParams.useCUDA == 1 && gpuDeviceCount > 0
+    %% Residual Calculation using CUDA
+    Pnow = reshape(P, [N, NUM_FMS, N, NUM_R2STARS]);
+    Ptemp = permute(Pnow, [1 3 2 4]);
+    Ptemp_r = real(Ptemp);
+    Ptemp_i = imag(Ptemp);
+    images_r = double(squeeze(real(images)));
+    images_i = double(squeeze(imag(images)));
+    residual = residualcalculation_cuda(Ptemp_r, Ptemp_i, images_r, images_i);
+else
+    if algoParams.useCUDA == 1 && gpuDeviceCount == 0
+        warning('You want to use CUDA but no GPU was found, fallback CPU calculation is used!')
+    end
 
     % Go line-by-line in the image to avoid using too much memory, while
     % still reducing the loops significantly
