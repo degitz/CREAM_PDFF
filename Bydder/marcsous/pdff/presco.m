@@ -46,6 +46,7 @@ end
 %% options
 % Default options CREAM
 opts.kspace_shift = 0; % shifting of k-space (1=on, 0=off)
+opts.mask = [];
 
 % constraints
 opts.muB = 0.00; % regularization for B0
@@ -77,6 +78,15 @@ opts.species(2).name = 'fat';
 opts.species(2).frequency = [-3.80, -3.40, -2.60, -1.94, -0.39, 0.60];
 opts.species(2).relAmps = [0.087 0.693 0.128 0.004 0.039 0.048];
 
+if opts.none
+    opts.muB = 0;
+    opts.muR = 0;
+    opts.nonnegFF = 0;
+    opts.nonnegR2 = 0;
+    opts.smooth_phase = 0;
+    opts.kspace_shift = 0;
+end
+
 % varargin handling (must be option/value pairs)
 for k = 1:2:numel(varargin)
     if k==numel(varargin) || ~ischar(varargin{k})
@@ -91,14 +101,6 @@ for k = 1:2:numel(varargin)
         n = numel(varargin{k+1});
         opts.(varargin{k})(1:n) = varargin{k+1};
     end
-end
-if opts.none
-    opts.muB = 0;
-    opts.muR = 0;
-    opts.nonnegFF = 0;
-    opts.nonnegR2 = 0;
-    opts.smooth_phase = 0;
-    opts.kspace_shift = 0;
 end
 
 %% argument checks - be flexible: 1D, 2D or 3D data

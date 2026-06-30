@@ -122,18 +122,18 @@ LMAP_EXTRA = algoParams.LMAP_EXTRA;
 DO_OT = algoParams.DO_OT;
 
 % Let's get the residual. If it's not already in the params, compute it
-try 
+if isfield(algoParams, 'residual')
     % Grab the residual from the params structure
     residual = algoParams.residual;
-catch
+else
     % Check for uniform TE spacings
     dTE = diff(imDataParams.TE);
 
-  try 
+    if isfield(algoParams, 'TRY_PERIODIC_RESIDUAL')
         TRY_PERIODIC_RESIDUAL = algoParams.TRY_PERIODIC_RESIDUAL;
-  catch
+    else
         TRY_PERIODIC_RESIDUAL=1;
-  end
+    end
 
     if TRY_PERIODIC_RESIDUAL==1 && sum(abs(dTE - dTE(1)))<1e-6 % If we have uniform TE spacing
         UNIFORM_TEs = 1;
@@ -180,7 +180,7 @@ lmap = lmap + mean(lmap(:))*LMAP_EXTRA;
 cur_ind = ceil(length(fms)/2)*ones(size(imDataParams.images(:,:,1,1,1)));
 
 % This is the core of the algorithm
-fm = graphCutIterations(imDataParams,algoParams,residual,lmap,cur_ind );
+fm = graphCutIterations(imDataParams,algoParams,residual,lmap,cur_ind);
 
 % If we have subsampled (for speed), let's interpolate the field map
 if SUBSAMPLE>1

@@ -64,7 +64,11 @@ DISPLAY_ITER = 0;
 
 
 % Initialize some auxiliary variables
-gyro = algoParams.gyro;
+if isfield(algoParams, 'gyro')
+    gyro = algoParams.gyro;
+else
+    gyro = 42.5774780505984;
+end
 deltaF = [0; gyro*(algoParams.species(2).frequency(:)-algoParams.species(1).frequency(1))*(imDataParams.FieldStrength)];
 lambda = algoParams.lambda;
 dt = imDataParams.TE(2)-imDataParams.TE(1);

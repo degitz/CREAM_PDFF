@@ -39,119 +39,119 @@ if length(imDataParams.TE) < 3
 end
 
 %% Whether to use constrained estimation with set bounds (e.g., on R2* estimates)
-try 
+if isfield(algoParams, 'use_bounds')
     algoParams2.use_bounds = algoParams.use_bounds;
-catch
+else
     algoParams2.use_bounds = 1;
 end
 
 %% Initial guess for R2* map
-try 
+if isfield(algoParams, 'r2starmap')
     algoParams2.r2starmap = algoParams.r2starmap;
-catch
+else
   algoParams2.r2starmap = zeros(size(imDataParams.images(:,:,1,1,1,1)));
   disp('No initial guess for R2* map provided. Initializing with zeroes');
 end
 
 %% Initial guess for field map
-try 
+if isfield(algoParams, 'fieldmap')
     algoParams2.fieldmap = algoParams.fieldmap;
-catch
+else
     algoParams2.fieldmap = zeros(size(imDataParams.images(:,:,1,1,1,1)));
   disp('No initial guess for B0 field map provided. Initializing with zeroes');
 end
 
 %% Number of echoes with potentially corrupted phase
-try 
+if isfield(algoParams, 'NUM_MAGN')
     algoParams2.NUM_MAGN = algoParams.NUM_MAGN;
-catch
+else
     algoParams2.NUM_MAGN = 1;
 end
 
 %% Signal threshold for processing voxels (by default process all)
-try 
+if isfield(algoParams, 'THRESHOLD')
     algoParams2.THRESHOLD = algoParams.THRESHOLD;
-catch
+else
     algoParams2.THRESHOLD = 0.0;
 end
 
 %%   - algoParams.size_clique = 1; % Size of MRF neighborhood (1 uses an 8-neighborhood, common in 2D)
-try
+if isfield(algoParams, 'size_clique')
     algoParams2.size_clique = algoParams.size_clique;
-catch 
+else
     algoParams2.size_clique = 1;
 end
 
 %%   - algoParams.range_r2star = [0 0]; % Range of R2* values
-try
+if isfield(algoParams, 'range_r2star')
     algoParams2.range_r2star = algoParams.range_r2star;
-catch 
+else
     algoParams2.range_r2star = [0 0];
 end
 
 %%   - algoParams.NUM_R2STARS = 1; % Numbre of R2* values for quantization
-try
+if isfield(algoParams, 'NUM_R2STARS')
     algoParams2.NUM_R2STARS = algoParams.NUM_R2STARS;
-catch 
+else
     algoParams2.NUM_R2STARS = 1;
 end
 
 %%   - algoParams.range_fm = [-400 400]; % Range of field map values
-try
+if isfield(algoParams, 'range_fm')
     algoParams2.range_fm = algoParams.range_fm;
-catch 
+else
     algoParams2.range_fm = [-400 400];
 end
 
 %%   - algoParams.NUM_FMS = 301; % Number of field map values to discretize
-try
+if isfield(algoParams, 'NUM_FMS')
     algoParams2.NUM_FMS = algoParams.NUM_FMS;
-catch 
+else
     algoParams2.NUM_FMS = 301;
 end
 
 %%   - algoParams.LMAP_POWER = 2; % Spatially-varying regularization (2 gives ~ uniformn resolution)
-try
+if isfield(algoParams, 'LMAP_POWER')
     algoParams2.LMAP_POWER = algoParams.LMAP_POWER;
-catch 
+else
     algoParams2.LMAP_POWER = 2;
 end
 
 %%   - algoParams.lambda = 0.05; % Regularization parameter
-try
+if isfield(algoParams, 'lambda')
     algoParams2.lambda = algoParams.lambda;
-catch 
+else
     algoParams2.lambda = 0.05;
 end
 
 %%   - algoParams.lambda = 0.05; % Regularization parameter
-try
+if isfield(algoParams, 'lambdamap')
     algoParams2.lambdamap = algoParams.lambdamap;
-catch 
+else
     algoParams2.lambdamap = ones(size(imDataParams.images(:,:,1,1,1,1)));
 end
 
 %%   - algoParams.LMAP_EXTRA = 0.05; % More smoothing for low-signal regions
-try
+if isfield(algoParams, 'LMAP_EXTRA')
     algoParams2.LMAP_EXTRA = algoParams.LMAP_EXTRA;
-catch 
+else
     algoParams2.LMAP_EXTRA = zeros(size(imDataParams.images(:,:,1,1,1)));
 end
 
 %%   - algoParams.TRY_PERIODIC_RESIDUAL = 0; % Take advantage of periodic residual if uniform TEs (will change range_fm)  
-try
+if isfield(algoParams, 'TRY_PERIODIC_RESIDUAL')
     algoParams2.TRY_PERIODIC_RESIDUAL = algoParams.TRY_PERIODIC_RESIDUAL;
-catch 
+else
     algoParams2.TRY_PERIODIC_RESIDUAL = 0;
 end
 
 %%   - imDataParams.PrecessionIsClockwise (1 = fat has positive frequency; -1 = fat has negative frequency)
-try
-  imDataParams2.PrecessionIsClockwise = imDataParams.PrecessionIsClockwise;
-  if imDataParams2.PrecessionIsClockwise <= 0 
-    imDataParams2.PrecessionIsClockwise == -1;
-  end
-catch 
-  imDataParams2.PrecessionIsClockwise = -1;
+if isfield(algoParams, 'PrecessionIsClockwise')
+    imDataParams2.PrecessionIsClockwise = imDataParams.PrecessionIsClockwise;
+    if imDataParams2.PrecessionIsClockwise <= 0
+        imDataParams2.PrecessionIsClockwise = -1;
+    end
+else
+    algoParams2.PrecessionIsClockwise = -1;
 end
 

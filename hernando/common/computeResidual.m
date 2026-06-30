@@ -43,20 +43,26 @@ function residual = computeResidual( imDataParams, algoParams )
 
 images = imDataParams.images;
 
-try
-  precessionIsClockwise = imDataParams.PrecessionIsClockwise;
-catch
-  precessionIsClockwise = 1;
 end
 
-  
-% If precession is clockwise (positive fat frequency) simply conjugate data
-if precessionIsClockwise <= 0 
-  imDataParams.images = conj(imDataParams.images);
-  imDataParams.PrecessionIsClockwise = 1;
+images = imDataParams.images;
+
+if isfield(imDataParams, 'PrecessionIsClockwise')
+    precessionIsClockwise = imDataParams.PrecessionIsClockwise;
+    % If precession is clockwise (positive fat frequency) simply conjugate data
+    if precessionIsClockwise <= 0
+        imDataParams.images = conj(imDataParams.images);
+        imDataParams.PrecessionIsClockwise = 1;
+    end
+else
+    precessionIsClockwise = 1;
 end
 
-gyro =algoParams.gyro;
+if isfield(algoParams, 'gyro')
+    gyro = algoParams.gyro;
+else
+    gyro = 42.5774780505984;
+end
 deltaF = [0; gyro*(algoParams.species(2).frequency(:)-algoParams.species(1).frequency(1))*(imDataParams.FieldStrength)];
 relAmps = algoParams.species(2).relAmps;
 range_fm = algoParams.range_fm;

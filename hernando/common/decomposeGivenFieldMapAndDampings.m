@@ -33,12 +33,14 @@
 
 function [amps,remerror] = decomposeGivenFieldMapAndDampings( imDataParams,algoParams,fieldmap,r2starWater,r2starFat )
 
-
-
-
-try
+if isfield(imDataParams, 'PrecessionIsClockwise')
     precessionIsClockwise = imDataParams.PrecessionIsClockwise;
-catch
+    % If precession is clockwise (positive fat frequency) simply conjugate data
+    if precessionIsClockwise <= 0
+        imDataParams.images = conj(imDataParams.images);
+        imDataParams.PrecessionIsClockwise = 1;
+    end
+else
     precessionIsClockwise = 1;
 end
 
@@ -48,14 +50,11 @@ catch
   ampW = 1.0;
 end
 
-  
-% If precession is clockwise (positive fat frequency) simply conjugate data
-if precessionIsClockwise <= 0 
-  imDataParams.images = conj(imDataParams.images);
-  imDataParams.PrecessionIsClockwise = 1;
+if isfield(algoParams, 'gyro')
+    gyro = algoParams.gyro;
+else
+    gyro = 42.5774780505984;
 end
-
-gyro =algoParams.gyro;
 deltaF = [0 ; gyro*(algoParams.species(2).frequency(:)-algoParams.species(1).frequency(1))*(imDataParams.FieldStrength)];
 relAmps = algoParams.species(2).relAmps;
 images = imDataParams.images;

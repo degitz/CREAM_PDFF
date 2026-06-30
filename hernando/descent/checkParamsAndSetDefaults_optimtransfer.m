@@ -38,39 +38,39 @@ if length(imDataParams.TE) < 3
 end
 
 %% Initial guess for R2* map
-try 
+if isfield(algoParams, 'r2starmap')
     algoParams2.r2starmap = algoParams.r2starmap;
-catch
+else
     algoParams2.r2starmap = zeros(size(imDataParams.images(:,:,1,1,1,1)));
 end
 
 %% Initial guess for field map
-try 
+if isfield(algoParams, 'fieldmap')
     algoParams2.fieldmap = algoParams.fieldmap;
-catch
+else
     algoParams2.fieldmap = zeros(size(imDataParams.images(:,:,1,1,1,1)));
 end
 
 %%   - algoParams.size_clique = 1; % Size of MRF neighborhood (1 uses an 8-neighborhood, common in 2D)
-try
+if isfield(algoParams, 'size_clique')
     algoParams2.size_clique = algoParams.size_clique;
-catch 
+else
     algoParams2.size_clique = 1;
 end
 
 %%   - algoParams.OT_ITERS = 30; % Number of optimization transfer iterations
-try
+if isfield(algoParams, 'OT_ITERS')
     algoParams2.OT_ITERS = algoParams.OT_ITERS;
-catch 
+else
     algoParams2.OT_ITERS = 30;
 end
 
 %%   - imDataParams.PrecessionIsClockwise (1 = fat has positive frequency; -1 = fat has negative frequency)
-try
+if isfield(algoParams, 'PrecessionIsClockwise')
     imDataParams2.PrecessionIsClockwise = imDataParams.PrecessionIsClockwise;
     if imDataParams2.PrecessionIsClockwise <= 0
         imDataParams2.PrecessionIsClockwise = -1;
     end
-catch 
+else
     imDataParams2.PrecessionIsClockwise = -1;
 end

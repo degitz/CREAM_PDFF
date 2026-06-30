@@ -79,7 +79,11 @@ end
 %% Get images and recon parameters
 im = double(imDataParams.images);
 [sx,sy,sz,C,N] = size(im);
-gyro =algoParams.gyro;
+if isfield(algoParams, 'gyro')
+    gyro = algoParams.gyro;
+else
+    gyro = 42.5774780505984;
+end
 freqs = [0; gyro*(algoParams.species(2).frequency(:) - algoParams.species(1).frequency(1))*(imDataParams.FieldStrength)];
 M = length(freqs);
 
@@ -146,7 +150,7 @@ outParams.fieldmap = fm;
 
 %% Perform mixed fitting at each voxel
 function [amps,r2,fm,phi] = fit_Mixed_1R2_MP_SingleVoxel(s, t, fs, relAmps, fminit, r0, NUM_MAGN, DEBUG, MAXR2, USE_BOUNDS)
-
+% s = voxel signal, t = TEs, fs = frequencies, r0 = initial r2* map
 % Initialize amplitudes
 N = length(t); % # of echoes
 M = length(fs); % # of fat & water frequencies
@@ -234,6 +238,7 @@ fiter = [fiter1;fiter2];
 
 % If in DEBUG mode, display some stuff
 if DEBUG
+    disp('')
     disp(['fieldmap = ' num2str(fm)]);
     disp(['r2 = ' num2str(r2.')]);
     disp(['amps = ' num2str(abs(amps).')])

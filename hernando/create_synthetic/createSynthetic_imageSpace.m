@@ -50,23 +50,23 @@ t = imDataParams0.TE;
 N = length(t);
 
 
-try
+if isfield(imDataParams0, 'FieldStrength')
   fieldStrength = imDataParams0.FieldStrength;
-catch
+else
   fieldStrength = 1.5;
 end
 
 
   
-try 
+if isfield(trueParams, 'r2starmap')
     r2starmap = trueParams.r2starmap;
-catch 
+else
     r2starmap = zeros(sx,sy);
 end
 
-try 
+if isfield(trueParams, 'fieldmap')
     fieldmap = trueParams.fieldmap;
-catch 
+else
     fieldmap = zeros(sx,sy);
 end
 
@@ -98,12 +98,12 @@ end
 
 
 %%   - imDataParams.PrecessionIsClockwise (1 = fat has positive frequency; -1 = fat has negative frequency)
-try
+if isfield(imDataParams0, 'PrecessionIsClockwise')
     imDataParams.PrecessionIsClockwise = imDataParams0.PrecessionIsClockwise;
     if imDataParams.PrecessionIsClockwise <= 0
         imDataParams.PrecessionIsClockwise = -1;
     end
-catch 
+else
     imDataParams.PrecessionIsClockwise = -1;
 end
 
