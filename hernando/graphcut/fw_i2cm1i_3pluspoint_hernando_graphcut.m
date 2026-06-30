@@ -204,6 +204,11 @@ if SUBSAMPLE>1
 end
 algoParams.lmap = lmap;
 
+% Preallocate data
+r2starmap = zeros(size(imDataParams.images,1), size(imDataParams.images,2), size(imDataParams.images,6));
+w = zeros(size(imDataParams.images,1), size(imDataParams.images,2), 1, size(imDataParams.images,6));
+f = zeros(size(imDataParams.images,1), size(imDataParams.images,2), 1, size(imDataParams.images,6));
+
 % Now take the field map fm and get the rest of the estimates
 if DEBUG
     tic
