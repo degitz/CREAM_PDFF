@@ -39,7 +39,12 @@
 % Date created: August 13, 2011
 % Date last modified: December 8, 2011
 
-function [residual, r2array] = Boehm_computeResidual( imDataParams, algoParams )
+function [residual, r2array] = Boehm_computeResidual(imDataParams, algoParams, verbose)
+
+% Check for verbose flag
+if nargin < 3
+    verbose = false;
+end
 
 images = imDataParams.images;
 
@@ -87,25 +92,27 @@ psis = linspace(range_fm(1),range_fm(2),NUM_FMS);
 r2s = linspace(range_r2star(1),range_r2star(2),NUM_R2STARS);
 
 % Precompute all projector matrices (one per field value) for VARPRO
-P = [];
+% P = [];
+P = zeros(N*NUM_FMS,N,NUM_R2STARS);
 reverseStr = '';
-for kr=1:NUM_R2STARS
-	P1 = [];
-    msg = sprintf('Precompute projector matrices: progress %.2f percent. ', kr/NUM_R2STARS*100);
-    fprintf([reverseStr, msg]);
-    reverseStr = repmat(sprintf('\b'), 1, length(msg));
-    
-    for k=1:NUM_FMS
-        Psi = diag(exp(j*2*pi*psis(k)*t - abs(t)*r2s(kr)));
-        P1 = [P1;(eye(N)-Psi*Phi*pinv(Psi*Phi))];
+for kr = 1:NUM_R2STARS
+    % P1 = [];
+    P1 = zeros(N*NUM_FMS,N);
+    if verbose
+        reverseStr = UpdatePercent(kr/NUM_R2STARS*100, reverseStr);
+    end
+    idx = 1;
+    for k = 1:NUM_FMS
+        Psi = diag(exp(1i*2*pi*psis(k)*t - abs(t)*r2s(kr)));
+        % P1 = [P1;(eye(N)-Psi*Phi*pinv(Psi*Phi))];
+        P1(idx:idx+N-1,:) = eye(N) - Psi*Phi*pinv(Psi*Phi);
+        idx = idx + N;
     end
     P(:,:,kr) = P1;
 end
-fprintf('\n')
 
 % Compute residual for all voxels and all field values
 % Note: the residual is computed in a vectorized way, for increased speed
-
 r2array = zeros(NUM_FMS,sx,sy,num_acq);
 
 % Go line-by-line in the image to avoid using too much memory, while
@@ -130,9 +137,9 @@ else
     for ka = 1:num_acq
         for ky = 1:sy
 
-        msg = sprintf('Compute residual: progress %.2f percent\n', ky/sy*100);
-        fprintf([reverseStr, msg]);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+            if verbose
+                reverseStr = UpdatePercent(ky/sy*100, reverseStr);
+            end
 
             temp = reshape(squeeze(permute(images(:,ky,:,:,:,ka),[1 2 3 5 4])),[sx N*C]).';
             temp = reshape(temp,[N sx*C]);
@@ -146,4 +153,12 @@ else
             r2array(:,:,ky,ka) = reshape(r2s(imint3),[sx NUM_FMS]).';
         end
     end
+end
+end
+
+% Update display percentage - Added by Jacob Degitz
+function revstr = UpdatePercent(perc, revstr)
+    msg = sprintf('%.2f percent. ', perc);
+    fprintf([revstr, msg]);
+    revstr = repmat(sprintf('\b'), 1, length(msg));
 end

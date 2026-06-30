@@ -142,15 +142,22 @@ if isempty(opts.noise)
     opts.noise = gather(sqrt(X/nnz(data))); % normalize for 0s
 end
 
+% signal mask (needs work)
+if ~isfield(opts, 'mask')
+    opts.mask = dot(data,data,4) > 2*opts.noise^2;
+end
+
 % time evolution matrix
 te = real(cast(te,'like',data));
 %[opts.A opts.psif] = fat_basis(te,Tesla,opts.ndb,opts.h2o);
 [opts.A, opts.psif] = fat_basis_CREAM(te,Tesla,opts);
 % display
-disp([' Data size: [' sprintf('%i ',size(data)) sprintf('\b]')])
-disp([' TE (ms): ' sprintf('%.2f ',1000*te(:))])
-disp([' Tesla (T): ' sprintf('%.2f',Tesla)])
-disp(opts);
+if opts.display
+    disp([' Data size: [' sprintf('%i ',size(data)) sprintf('\b]')])
+    disp([' TE (ms): ' sprintf('%.2f ',1000*te(:))])
+    disp([' Tesla (T): ' sprintf('%.2f',Tesla)])
+    disp(opts);
+end
 
 % standardize mu across datasets
 if opts.noise
@@ -160,7 +167,6 @@ end
 
 %% center kspace (otherwise smoothing is risky)
 
-mask = dot(data,data,4);
 if opts.kspace_shift    
     data = fft(fft2(data),[],3);
     tmp = dot(data,data,4);
@@ -168,10 +174,12 @@ if opts.kspace_shift
     [dx, dy, dz] = ind2sub([nx ny nz],k);
     data = circshift(data,1-[dx dy dz]);
     data = ifft(ifft2(data),[],3).*(mask>0);
-    fprintf(' Shifting kspace center from [%i %i %i]\n',dx,dy,dz);
-end
+    if opts.display
+        fprintf(' Shifting kspace center from [%i %i %i]\n',dx,dy,dz);
+    end
 
-opts.mask = mask > opts.noise^2;
+    opts.mask = mask > opts.noise^2;
+end
 
 %% initial estimate of psi
 
@@ -207,7 +215,9 @@ try
     gpu = gpuDevice;
     if verLessThan('matlab','8.4'); error('GPU needs MATLAB R2014b'); end
     data = gpuArray(data);
-    fprintf(' GPU found = %s (%.1f Gb)\n',gpu.Name,gpu.AvailableMemory/1e9);
+    if opts.display
+        fprintf(' GPU found = %s (%.1f Gb)\n',gpu.Name,gpu.AvailableMemory/1e9);
+    end
 catch ME
     data = gather(data);
     warning('%s. Using CPU.',ME.message); %#ok<MEXCEP>
@@ -226,6 +236,7 @@ opts.muR = cast(opts.muR,'like',te);
 opts.muB = cast(opts.muB,'like',te);
 opts.noise = cast(opts.noise,'like',te);
 opts.filter = cast(opts.filter,'like',te);
+opts.display = cast(opts.display,'like',te);
 
 % allow for spatially varying regularization
 if ~isscalar(opts.muR)
@@ -265,7 +276,9 @@ for iter = 1:opts.maxit(2)
     
     % local optimization
     [r, psi, phi, x] = nlsfit(psi,te,data,opts);
-    fprintf(' Iter %i\t%f\n',iter,norm(r(:)));
+    if opts.display
+        fprintf(' Iter %i\t%f\n',iter,norm(r(:)));
+    end
     
     % deal with pixel swapping
     if iter<opts.maxit(2)

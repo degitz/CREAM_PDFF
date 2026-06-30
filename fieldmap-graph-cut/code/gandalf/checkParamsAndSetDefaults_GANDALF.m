@@ -1,4 +1,9 @@
-function VARPROparamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoParams)
+function algoParamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoParams, verbose)
+
+    % Check for verbose flag
+    if nargin < 3
+        verbose = false;
+    end
 
     validParams = 1;
 
@@ -22,10 +27,14 @@ function VARPROparamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoP
     dTE = diff(imDataParams.TE);
     if sum(abs(dTE - dTE(1))) < 1e-6 % If we have uniform TE spacing
         dt = imDataParams.TE(2) - imDataParams.TE(1);
-        fprintf('Uniform TE spacing: Period = TE(2) - TE(1)\n');
+        if verbose
+            fprintf('Uniform TE spacing: Period = TE(2) - TE(1)\n');
+        end
     else % options:dt = #1) TE2-TE1, #2) TE7-TE6, #3) (#1+#2)/2 #4 (#1*6+#2)/7
         dt = imDataParams.TE(4) - imDataParams.TE(3);
-        fprintf('Non-uniform TE spacing detected, assuming 2 UTE echos: Period = TE(4) - TE(3)\n');
+        if verbose
+            fprintf('Non-uniform TE spacing detected, assuming 2 UTE echos: Period = TE(4) - TE(3)\n');
+        end
     end    
     
     VARPROparamsout.species = algoParams.species;
@@ -48,7 +57,9 @@ function VARPROparamsout = checkParamsAndSetDefaults_GANDALF(imDataParams, algoP
     
     disctreizationintervall = ceil( diff(VARPROparamsout.range_fm) );
     Numlayers = ceil( disctreizationintervall / VARPROparamsout.sampling_stepsize );
-    disp(["Numlayers",Numlayers])
+    if verbose
+        fprintf('Numlayers = %i', Numlayers)
+    end
     
     VARPROparamsout.NUM_FMS = Numlayers;
     t = linspace(VARPROparamsout.range_fm(1), VARPROparamsout.range_fm(2), VARPROparamsout.NUM_FMS);

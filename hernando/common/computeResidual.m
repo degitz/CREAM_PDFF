@@ -39,10 +39,10 @@
 % Date created: August 13, 2011
 % Date last modified: December 8, 2011
 
-function residual = computeResidual( imDataParams, algoParams )
+function residual = computeResidual(imDataParams, algoParams, DEBUG)
 
-images = imDataParams.images;
-
+if nargin < 3
+    DEBUG = 0;
 end
 
 images = imDataParams.images;
@@ -92,6 +92,12 @@ psis = linspace(range_fm(1),range_fm(2),NUM_FMS);
 r2s = linspace(range_r2star(1),range_r2star(2),NUM_R2STARS);
 
 % Precompute all projector matrices (one per field value) for VARPRO
+if DEBUG
+    tic
+    fprintf('\nPrecomputing all projector matrices...')
+end
+
+%%%%%% Changed by Jacob Degitz 10/17/2024 %%%%%%
 P = [];
 for kr=1:NUM_R2STARS
   P1 = [];
@@ -101,6 +107,12 @@ for kr=1:NUM_R2STARS
   end
   P(:,:,kr) = P1;
 end
+%%%%%% Changed by Jacob Degitz 10/17/2024 %%%%%%
+
+if DEBUG
+    tttime = toc;
+    fprintf('Done (%.2f sec)', tttime)
+end
 
 % Compute residual for all voxels and all field values
 % Note: the residual is computed in a vectorized way, for increased speed
@@ -109,17 +121,37 @@ residual = zeros(NUM_FMS,sx,sy);
 
 % Go line-by-line in the image to avoid using too much memory, while
 % still reducing the loops significantly
-for ka=1:num_acq
-  for ky=1:sy
-    temp = reshape(squeeze(permute(images(:,ky,:,:,:,ka),[1 2 3 5 4])),[sx N*C]).';
-    temp = reshape(temp,[N sx*C]);
+    residual = zeros(NUM_FMS,sx,sy);
+    reverseStr = '';
+    for ka = 1:num_acq
+        for ky = 1:sy
+
+            if verbose
+                reverseStr = UpdatePercent(ky/sy*100, reverseStr);
+            end
+
+            temp = reshape(squeeze(permute(images(:,ky,:,:,:,ka),[1 2 3 5 4])),[sx N*C]).';
+            temp = reshape(temp,[N sx*C]);
     for kr=1:NUM_R2STARS
       temp2(:,:,kr) = reshape(sum(abs(reshape(P(:,:,kr)*temp,[N C*NUM_FMS*sx])).^2,1),[NUM_FMS C*sx]).';
       temp3(:,kr) = sum(reshape(temp2(:,:,kr),[C NUM_FMS*sx]),1);
     end
-    [mint3,imint3] = min(temp3,[],2);
-    
-    residual(:,:,ky) = squeeze(squeeze(residual(:,:,ky)).' + reshape(mint3,[sx NUM_FMS])).';
+            [mint3,imint3] = min(temp3,[],2);
+
+            residual(:,:,ky) = squeeze(squeeze(residual(:,:,ky)).' + reshape(mint3,[sx NUM_FMS])).';
 % $$$       r2array(:,:,ky,ka) = (reshape(r2s(imint3),[sx NUM_FMS])).';
-  end
+        end
+    end
+end
+if DEBUG
+    tttime = toc;
+    fprintf('Done (%.2f sec)', tttime)
+end
+end
+
+% Update display percentage - Added by Jacob Degitz
+function revstr = UpdatePercent(perc, revstr)
+    msg = sprintf('%.2f percent. ', perc);
+    fprintf([revstr, msg]);
+    revstr = repmat(sprintf('\b'), 1, length(msg));
 end

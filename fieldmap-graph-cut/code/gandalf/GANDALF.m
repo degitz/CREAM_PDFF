@@ -15,8 +15,13 @@
 % Date created: May 14, 2018
 % Date last modified: September 7, 2018
 
-function outParams = GANDALF(imDataParams, algoParams, VARPROparams)  
+function outParams = GANDALF(imDataParams, algoParams, VARPROparams, verbose)  
 
+    % Check for verbose flag
+    if nargin < 4
+        verbose = false;
+    end
+    
     % algoParams.range_r2star = VARPROparams.range_r2star;
     % algoParams.NUM_R2STARS = VARPROparams.NUM_R2STARS;
     INFTY = 100000000;
@@ -41,7 +46,10 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     NoiseWeighting = scale_array2interval(MIP, [0, 1]) .* masksignal;
 
     %% Create Node Indice Array
-    t1 = tic;
+    if verbose
+        t = tic;
+        fprintf('Creating node indice array... ');
+    end
     NodeIndicies = zeros(nVoxel_Y, nVoxel_X, nVoxel_Z, nMaxNodesPerVoxel);
     rem = 1;
     for Z = 1:nVoxel_Z
@@ -54,12 +62,17 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
             end
         end
     end
-    t1 = toc(t1);
-    fprintf('Created Node Indice Array in %.2fs\n', t1);
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+    end
 
 
     %% Create Intra-Column Edgelist
-    t1 = tic;
+    if verbose
+        t = tic;
+        fprintf('Creating intra-column edges... ');
+    end
     IntraColumnEdges = zeros((nNodes + nVoxel), 4);
     rem = 1;
 
@@ -97,15 +110,19 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         end
     end
     IntraColumnEdges = IntraColumnEdges(1:rem-1, :);
-    t1 = toc(t1);
-    fprintf('Created Intra-Column Edges in %.2fs\n', t1);
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+    end
 
     %% Create Inter-Column Edgelist
     % Edges in X-Direction
 
-    fprintf('Calculating Edges in X-Direction... ');
-
-    t1 = tic;
+    if verbose
+        fprintf('Calculating edges in X-direction... ');
+        t = tic;
+        reverseStr = '';
+    end
     
     meanNodesPerVoxel = nNodes / nMeanfullVoxel;
     if nVoxel_Z == 1
@@ -115,15 +132,14 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     end
 
     rem = 1;
-    reverseStr = '';
 
     for Z = 1:nVoxel_Z
         for Y = 1:nVoxel_Y
 
-            Prozent = ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * nVoxel_Z)) * 100 / 2;
-            msg = sprintf('%.2f percent. ', Prozent);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+            if verbose
+                Prozent = ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * nVoxel_Z)) * 100 / 2;
+                reverseStr = UpdatePercent(Prozent, reverseStr);
+            end
 
             for X = 1:nVoxel_X-1
                 if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y, X+1, Z) ~= 0)
@@ -176,10 +192,10 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     for Z = 1:nVoxel_Z
         for Y = 1:nVoxel_Y
 
-            Prozent = 50 + ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * nVoxel_Z)) * 100 / 2;
-            msg = sprintf('%.2f percent. ', Prozent);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+            if verbose
+                Prozent = 50 + ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * nVoxel_Z)) * 100 / 2;
+                reverseStr = UpdatePercent(Prozent, reverseStr);
+            end
 
             for X = 1:nVoxel_X-1
                 if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y, X+1, Z) ~= 0)
@@ -230,20 +246,25 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         end
     end
 
-    t1 = toc(t1);
-    fprintf('Done! (%.2fs)\n', t1);
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+    end
 
     %% Edges in Y-Direction
-    fprintf('Calculating Edges in Y-Direction... ');
-    t1 = tic;
-    reverseStr = '';
+    if verbose
+        fprintf('Calculating edges in Y-direction... ');
+        t = tic;
+        reverseStr = '';
+    end
+
     for Z = 1:nVoxel_Z
         for Y = 1:nVoxel_Y-1
 
-            Prozent = ((((Z - 1) * (nVoxel_Y - 1)) + Y) / ((nVoxel_Y - 1) * nVoxel_Z)) * 100 / 2;
-            msg = sprintf('%.2f percent. ', Prozent);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+            if verbose
+                Prozent = ((((Z - 1) * (nVoxel_Y - 1)) + Y) / ((nVoxel_Y - 1) * nVoxel_Z)) * 100 / 2;
+                reverseStr = UpdatePercent(Prozent, reverseStr);
+            end
 
             for X = 1:nVoxel_X
                 if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y+1, X, Z) ~= 0)
@@ -297,10 +318,10 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     for Z = 1:nVoxel_Z
         for Y = 1:nVoxel_Y-1
 
-            Prozent = 50 + ((((Z - 1) * (nVoxel_Y - 1)) + Y) / ((nVoxel_Y - 1) * nVoxel_Z)) * 100 / 2;
-            msg = sprintf('%.2f percent. ', Prozent);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+            if verbose
+                Prozent = 50 + ((((Z - 1) * (nVoxel_Y - 1)) + Y) / ((nVoxel_Y - 1) * nVoxel_Z)) * 100 / 2;
+                reverseStr = UpdatePercent(Prozent, reverseStr);
+            end
 
             for X = 1:nVoxel_X
                 if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y+1, X, Z) ~= 0)
@@ -351,23 +372,27 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         end
     end
 
-    t1 = toc(t1);
-    fprintf('Done! (%.2fs)\n', t1);
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+    end
 
     %% Edges in Z-Direction
 
     if nVoxel_Z > 1
-        fprintf('Calculating Edges in Z-Direction... ');
-        t1 = tic;
-        reverseStr = '';
+        if verbose
+            fprintf('Calculating edges in Z-direction... ');
+            t = tic;
+            reverseStr = '';
+        end
 
         for Z = 1:nVoxel_Z-1
             for Y = 1:nVoxel_Y
 
-            Prozent = ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * (nVoxel_Z - 1))) * 100 / 2;
-            msg = sprintf('%.2f percent. ', Prozent);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+                if verbose
+                    Prozent = ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * (nVoxel_Z - 1))) * 100 / 2;
+                    reverseStr = UpdatePercent(Prozent, reverseStr);
+                end
 
                 for X = 1:nVoxel_X
                     if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y, X, Z+1) ~= 0)
@@ -421,10 +446,10 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         for Z = 1:nVoxel_Z-1
             for Y = 1:nVoxel_Y
 
-            Prozent = 50 + ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * (nVoxel_Z - 1))) * 100 / 2;
-            msg = sprintf('%.2f percent. ', Prozent);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+                if verbose
+                    Prozent = 50 + ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * (nVoxel_Z - 1))) * 100 / 2;
+                    reverseStr = UpdatePercent(Prozent, reverseStr);
+                end
 
                 for X = 1:nVoxel_X
                     if (masksignal(Y, X, Z) ~= 0) && (masksignal(Y, X, Z+1) ~= 0)
@@ -475,15 +500,19 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
             end
         end
 
-    t1 = toc(t1);
-    fprintf('Done! (%.2fs)\n', t1);
+        if verbose
+            t = toc(t);
+            fprintf('Done! (%.2fs)\n', t);
+        end
 
     end
     InterColumnEdges = InterColumnEdges(1:rem-1, :);
 
     %% Generate Adjacency Matrix from the Edgelists
-    t = tic;
-    fprintf('Creating Graph... ');
+    if verbose
+        t = tic;
+        fprintf('Creating graph... ');
+    end
     A = sparse( InterColumnEdges(:, 1), InterColumnEdges(:, 2), InterColumnEdges(:, 3), nNodes+2, nNodes+2 );
     B = sparse( IntraColumnEdges(:, 1), IntraColumnEdges(:, 2), IntraColumnEdges(:, 3), nNodes+2, nNodes+2 );
     C = sparse( IntraColumnEdges(:, 2), IntraColumnEdges(:, 1), IntraColumnEdges(:, 4), nNodes+2, nNodes+2 );
@@ -494,27 +523,34 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
     %% Create MATLAB-Graph and calculate maxflow
     G = digraph(D);
     clear D
-    t = toc(t);
-    fprintf('Done! (%.2fs)\n', t);
-    fprintf('Solving Graph... ');
-    
-    t = tic;
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+        t = tic;
+        fprintf('Solving graph... ');
+    end
     [~, ~, cs, ~] = maxflow(G, S_Node_ID, T_Node_ID);
-    t = toc(t);
-    fprintf('Done! (%.2fs)\n', t);
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+    end
 
     %% Reconstruct fm
-    fprintf('Reconstructing Fieldmap...');
+    if verbose
+        t = tic;
+        fprintf('Reconstructing fieldmap... ');
+        reverseStr = '';
+    end
+
     CS_Array = zeros(nVoxel_Y, nVoxel_X, nVoxel_Z, nMaxNodesPerVoxel);
-    reverseStr = '';
 
     for Z = 1:nVoxel_Z
         for Y = 1:nVoxel_Y
 
-            Prozent = ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * nVoxel_Z)) * 100;
-            msg = sprintf('%.2f percent. ', Prozent);
-            fprintf([reverseStr, msg]);
-            reverseStr = repmat(sprintf('\b'), 1, length(msg));
+            if verbose
+                Prozent = ((((Z - 1) * nVoxel_Y) + Y) / (nVoxel_Y * nVoxel_Z)) * 100;
+                reverseStr = UpdatePercent(Prozent, reverseStr);
+            end
 
             for X = 1:nVoxel_X
                 for N = 1:nMinimaPerVoxel(Y, X, Z)
@@ -542,27 +578,33 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
             end
         end
     end
-    fprintf('Done!\n');
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+    end
 
     %% Backproject to physical Fieldmap
     dfm = algoParams.range_fm(1) + fm;
 
     %% Calculate r2starmap and water-fat separated images
-    fprintf('Calculating r2starmap and water-fat separated images... ');
+    if verbose
+        t = tic;
+        fprintf('Calculating R2* map & water/fat Separated images... ');
+    end
     water = ones(nVoxel_Y, nVoxel_X, nVoxel_Z);
     fat = ones(nVoxel_Y, nVoxel_X, nVoxel_Z);
     r2starmap = ones(nVoxel_Y, nVoxel_X, nVoxel_Z);  
     for Z = 1:nVoxel_Z
-        
-        msg = sprintf('%.2f percent. ', Z / nVoxel_Z * 100);
-        fprintf([reverseStr, msg]);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        if verbose
+            Prozent = Z/nVoxel_Z*100;
+            reverseStr = UpdatePercent(Prozent, reverseStr);
+        end
 
         tmp_imDataParams = imDataParams;
         tmp_imDataParams.images = tmp_imDataParams.images(:, :, Z, :, :);
         
-        r2starmap(:, :, Z) = Boehm_estimateR2starGivenFieldmap( tmp_imDataParams, algoParams, squeeze(dfm(:, :, Z)) );
-        amps = Boehm_decomposeGivenFieldMapAndDampings( tmp_imDataParams, algoParams, squeeze(dfm(:, :, Z)), r2starmap(:, :, Z), r2starmap(:, :, Z) );
+        r2starmap(:, :, Z) = Boehm_estimateR2starGivenFieldmap(tmp_imDataParams, algoParams, squeeze(dfm(:, :, Z)));
+        amps = Boehm_decomposeGivenFieldMapAndDampings(tmp_imDataParams, algoParams, squeeze(dfm(:, :, Z)), r2starmap(:, :, Z), r2starmap(:, :, Z));
         
         waterimage = squeeze(amps(:, :, 1, :));
         fatimage = squeeze(amps(:, :, 2, :));
@@ -570,11 +612,21 @@ function outParams = GANDALF(imDataParams, algoParams, VARPROparams)
         water(:, :, Z) = waterimage;
         fat(:, :, Z) = fatimage;
     end
-    fprintf('Done!\n');
+    if verbose
+        t = toc(t);
+        fprintf('Done! (%.2fs)\n', t);
+    end
 
     %% Transfer results into outParams structure
     outParams.water = water.*masksignal;
     outParams.fat = fat.*masksignal;
     outParams.fieldmap = dfm;
     outParams.r2starmap = r2starmap.*masksignal;
+end
+
+% Update display percentage
+function revstr = UpdatePercent(perc, revstr)
+    msg = sprintf('%.2f percent. ', perc);
+    fprintf([revstr, msg]);
+    revstr = repmat(sprintf('\b'), 1, length(msg));
 end

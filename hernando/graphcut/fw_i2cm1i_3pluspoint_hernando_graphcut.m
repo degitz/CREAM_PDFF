@@ -141,9 +141,9 @@ else
         UNIFORM_TEs = 0;
     end
 
-  if DEBUG == 1
-    UNIFORM_TEs
-  end
+    % if DEBUG == 1
+    %   UNIFORM_TEs
+    % end
 
     % Compute the residual
     if UNIFORM_TEs == 1 % TEST DH* 090801
@@ -180,7 +180,17 @@ lmap = lmap + mean(lmap(:))*LMAP_EXTRA;
 cur_ind = ceil(length(fms)/2)*ones(size(imDataParams.images(:,:,1,1,1)));
 
 % This is the core of the algorithm
+if DEBUG
+    tic
+    fprintf('\nEstimating field map through iterative graph-cuts...')
+end
+
 fm = graphCutIterations(imDataParams,algoParams,residual,lmap,cur_ind);
+
+if DEBUG
+    tttime = toc;
+    fprintf('Done (%.2f sec)', tttime)
+end
 
 % If we have subsampled (for speed), let's interpolate the field map
 if SUBSAMPLE>1
@@ -195,6 +205,11 @@ end
 algoParams.lmap = lmap;
 
 % Now take the field map fm and get the rest of the estimates
+if DEBUG
+    tic
+    fprintf('\nEstimating R2*, water, and fat maps...')
+end
+
 for ka = 1:size(imDataParams.images,6)
 
     curParams = imDataParams;
@@ -217,9 +232,18 @@ for ka = 1:size(imDataParams.images,6)
         f(:,:,:,ka) = fatimage;
     end
 end
+
+if DEBUG
+    tttime = toc;
+    fprintf('Done (%.2f sec)', tttime)
 end
 
 % If Optimization Transfer is requested, do it now
+if DEBUG
+    tic
+    fprintf('\nPerforming optimization transfer...')
+end
+
 if DO_OT == 1
     imDataParams.fmGC = fm;
 
@@ -246,6 +270,9 @@ if DO_OT == 1
     f(:,:,:,ka) = fatimage;
 end
 
+if DEBUG
+    tttime = toc;
+    fprintf('Done (%.2f sec)', tttime)
 end
 
 % Put results in outParams structure

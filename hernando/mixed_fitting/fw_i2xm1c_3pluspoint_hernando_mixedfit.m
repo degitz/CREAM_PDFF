@@ -44,8 +44,11 @@
 % Date created: August 18, 2011
 % Date last modified: February 10, 2012
 
-function outParams = fw_i2xm1c_3pluspoint_hernando_mixedfit( imDataParams, algoParams )
+function outParams = fw_i2xm1c_3pluspoint_hernando_mixedfit(imDataParams, algoParams, DEBUG)
 
+if nargin < 3
+    DEBUG = 0;
+end
 
 % Check validity of params, and set default algorithm parameters if not provided
 [validParams,algoParams] = checkParamsAndSetDefaults_mixedfit(imDataParams,algoParams);
@@ -115,6 +118,11 @@ end
 smagn = sqrt(sum(sum(abs(im).^2,5),4));
 smagn = smagn/max(smagn(:));
 
+% Create figure
+if DEBUG
+    figure;
+end
+
 % Initialize maps and iterate over voxels
 ampsmap = zeros(sx,sy,2);
 r2starmap = zeros(sx,sy);
@@ -122,16 +130,21 @@ fm = zeros(sx,sy);
 phi = zeros(sx,sy);
 for kx = 1:sx
     for ky = 1:sy
-    if kx==33333 & ky==3
-      DEBUG = 1;
-    else
-      DEBUG = 0;
-    end
-    
+        % if kx==33333 && ky==3
+        %   DEBUG = 1;
+        % else
+        %   DEBUG = 0;
+        % end
+
         if smagn(kx,ky) > THRESHOLD
             [ampsmap(kx,ky,:),r2starmap(kx,ky),fm(kx,ky),phi(kx,ky)] = fit_Mixed_1R2_MP_SingleVoxel(reshape(squeeze(im(kx,ky,:,:,:)),[N C]), imDataParams.TE, freqs, relAmps,fminit(kx,ky),r2init(kx,ky), NUM_MAGN, DEBUG, MAXR2, USE_BOUNDS);
         end
     end
+end
+
+% CLose figure
+if DEBUG
+    close
 end
 
 % Put results in outParams structure
