@@ -37,7 +37,9 @@ function outParams = calculateMinimaDirect(imDataParams, VARPROparams, verbose)
         options.minDistance = VARPROparams.sampling_stepsize;
     end
 
-    parfor Z = 1:nVoxel_Z
+    pool = parpool;
+    opts = parforOptions(pool, 'MaxNumWorkers',4);
+    parfor (Z = 1:nVoxel_Z, opts)
         if verbose
             fprintf('Slice %d of %d: ', Z, nVoxel_Z);
         end

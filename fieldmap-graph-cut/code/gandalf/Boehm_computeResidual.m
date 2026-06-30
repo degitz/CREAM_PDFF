@@ -143,10 +143,14 @@ else
 
             temp = reshape(squeeze(permute(images(:,ky,:,:,:,ka),[1 2 3 5 4])),[sx N*C]).';
             temp = reshape(temp,[N sx*C]);
-        for kr=1:NUM_R2STARS
-            temp2(:,:,kr) = reshape(sum(abs(reshape(P(:,:,kr)*temp,[N C*NUM_FMS*sx])).^2,1),[NUM_FMS C*sx]).';
-            temp3(:,kr) = sum(reshape(temp2(:,:,kr),[C NUM_FMS*sx]),1);
-        end
+            % for kr=1:NUM_R2STARS
+            %     temp2(:,:,kr) = reshape(sum(abs(reshape(P(:,:,kr)*temp,[N C*NUM_FMS*sx])).^2,1),[NUM_FMS C*sx]).';
+            %     temp3(:,kr) = sum(reshape(temp2(:,:,kr),[C NUM_FMS*sx]),1);
+            % end
+            temp2 = permute(reshape(sum(abs(reshape(pagemtimes(P,temp),[N C*NUM_FMS*sx NUM_R2STARS])).^2,1),[NUM_FMS C*sx NUM_R2STARS]),[2 1 3]);
+            temp3 = squeeze(sum(reshape(temp2,[C NUM_FMS*sx NUM_R2STARS]),1));
+            %%%%%% Changed by Jacob Degitz 10/24/2024 %%%%%%
+
             [mint3,imint3] = min(temp3,[],2);
 
             residual(:,:,ky) = squeeze(squeeze(residual(:,:,ky)).' + reshape(mint3,[sx NUM_FMS])).';
