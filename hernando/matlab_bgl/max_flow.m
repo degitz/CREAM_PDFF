@@ -1,4 +1,4 @@
-function [flowval cut R F] = max_flow(A,u,v,varargin)
+function [flowval, cut, R, F] = max_flow(A,u,v,varargin)
 % MAX_FLOW Compute the max flow on A from u to v.
 %
 % flowval=max_flow(A,u,v) computes the maximum flow on the network defined by
@@ -46,7 +46,7 @@ function [flowval cut R F] = max_flow(A,u,v,varargin)
 %    Added fix_diag option
 %%
 
-[trans check full2sparse] = get_matlab_bgl_options(varargin{:});
+[trans, check, full2sparse] = get_matlab_bgl_options(varargin{:});
 if full2sparse && ~issparse(A), A = sparse(A); end
 
 options = struct('algname', 'push_relabel','fix_diag',1);
@@ -64,9 +64,9 @@ if ~trans, A = A'; end
 n = size(A,1);
 
 if nargout == 2
-    [flowval cut] = max_flow_mex(A,u,v,lower(options.algname));
+    [flowval, cut] = max_flow_mex(A,u,v,lower(options.algname));
 elseif nargout >= 3
-    [flowval cut ri rj rv] = max_flow_mex(A,u,v,lower(options.algname));
+    [flowval, cut, ri, rj, rv] = max_flow_mex(A,u,v,lower(options.algname));
     
     % If anyone needs this operation to be more efficient, send me email, 
     % and I can make max_flow_mex return this more efficiently.
