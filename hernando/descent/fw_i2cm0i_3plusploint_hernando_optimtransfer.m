@@ -26,7 +26,7 @@
 %      - algoParams.species(2).relAmps = [0.087 0.693 0.128 0.004 0.039 0.048]
 %
 %   - algoParams.size_clique = 1; % Size of MRF neighborhood (1 uses an 8-neighborhood, common in 2D)
-%   - algoParams.OT_ITERS = 40; % Number of optimization transfer iterations
+%   - algoParams.NUM_ITERS = 40; % Number of optimization transfer iterations
 %   - algoParams.lambdamap ; % Spatially-varying regularization parameter
 %
 % Output: structure outParams
@@ -72,7 +72,7 @@ images = permute(imDataParams.images,[1 2 5 4 6 3]);
 
 fm0 = algoParams.fieldmap;
 r2starmap = algoParams.r2starmap;
-NUM_ITERS = algoParams.OT_ITERS;
+NUM_ITERS = algoParams.NUM_ITERS;
 lambdamap = algoParams.lambdamap;
 
 % Need to create my finite-difference matrix
