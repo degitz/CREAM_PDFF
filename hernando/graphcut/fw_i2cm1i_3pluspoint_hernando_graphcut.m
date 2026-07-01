@@ -154,7 +154,7 @@ else
         range = diff(algoParams.range_fm);
         params.NUM_FMS = ceil(algoParams.NUM_FMS/range*period);
         params.range_fm = [0 period*(1-1/(algoParams.NUM_FMS))];
-        residual = computeResidual(imDataParams, algoParams);
+        residual = computeResidual(imDataParams, algoParams, DEBUG);
         num_periods = ceil(range/period/2);
         algoParams.NUM_FMS = 2*num_periods*algoParams.NUM_FMS;
         residual = repmat(residual,[2*num_periods 1 1]);

@@ -39,10 +39,10 @@
 % Date created: August 13, 2011
 % Date last modified: December 8, 2011
 
-function residual = computeResidual(imDataParams, algoParams, DEBUG)
+function residual = computeResidual(imDataParams, algoParams, verbose)
 
 if nargin < 3
-    DEBUG = 0;
+    verbose = 0;
 end
 
 images = imDataParams.images;
@@ -92,7 +92,7 @@ psis = linspace(range_fm(1),range_fm(2),NUM_FMS);
 r2s = linspace(range_r2star(1),range_r2star(2),NUM_R2STARS);
 
 % Precompute all projector matrices (one per field value) for VARPRO
-if DEBUG
+if verbose
     tic
     fprintf('\nPrecomputing all projector matrices...')
 end
@@ -114,30 +114,30 @@ for kr = 1:NUM_R2STARS
 end
 %%%%%% Changed by Jacob Degitz 10/17/2024 %%%%%%
 
-if DEBUG
+if verbose
     tttime = toc;
     fprintf('Done (%.2f sec)', tttime)
 end
 
 % Compute residual for all voxels and all field values
 % Note: the residual is computed in a vectorized way, for increased speed
-if DEBUG
+if verbose
     tic
     fprintf('\nComputing residual for all voxels & field values...')
 end
-if algoParams.useCUDA == 1 && gpuDeviceCount > 0
-    %% Residual Calculation using CUDA
-    Pnow = reshape(P, [N, NUM_FMS, N, NUM_R2STARS]);
-    Ptemp = permute(Pnow, [1 3 2 4]);
-    Ptemp_r = real(Ptemp);
-    Ptemp_i = imag(Ptemp);
-    images_r = double(squeeze(real(images)));
-    images_i = double(squeeze(imag(images)));
-    residual = residualcalculation_cuda(Ptemp_r, Ptemp_i, images_r, images_i);
-else
-    if algoParams.useCUDA == 1 && gpuDeviceCount == 0
-        warning('You want to use CUDA but no GPU was found, fallback CPU calculation is used!')
-    end
+% if algoParams.useCUDA == 1 && gpuDeviceCount > 0
+%     %% Residual Calculation using CUDA
+%     Pnow = reshape(P, [N, NUM_FMS, N, NUM_R2STARS]);
+%     Ptemp = permute(Pnow, [1 3 2 4]);
+%     Ptemp_r = real(Ptemp);
+%     Ptemp_i = imag(Ptemp);
+%     images_r = double(squeeze(real(images)));
+%     images_i = double(squeeze(imag(images)));
+%     residual = residualcalculation_cuda(Ptemp_r, Ptemp_i, images_r, images_i);
+% else
+%     if algoParams.useCUDA == 1 && gpuDeviceCount == 0
+%         warning('You want to use CUDA but no GPU was found, fallback CPU calculation is used!')
+%     end
 
     % Go line-by-line in the image to avoid using too much memory, while
     % still reducing the loops significantly
@@ -166,8 +166,8 @@ else
 % $$$       r2array(:,:,ky,ka) = (reshape(r2s(imint3),[sx NUM_FMS])).';
         end
     end
-end
-if DEBUG
+% end
+if verbose
     tttime = toc;
     fprintf('Done (%.2f sec)', tttime)
 end
