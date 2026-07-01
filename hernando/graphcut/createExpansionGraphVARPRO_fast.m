@@ -42,7 +42,7 @@ step_ind = cur_ind + step;
 if strcmp(computer,'GLNX86')
   maxA = 1e5;
 else
-  maxA = 1e6;
+  maxA = 1e4;
 end
 
 valsh = zeros(1,s);
