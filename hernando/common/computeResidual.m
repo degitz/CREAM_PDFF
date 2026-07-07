@@ -97,22 +97,17 @@ if verbose
     fprintf('\nPrecomputing all projector matrices...')
 end
 
-%%%%%% Changed by Jacob Degitz 10/17/2024 %%%%%%
-% P = [];
 P = zeros(N*NUM_FMS,N,NUM_R2STARS);
 for kr = 1:NUM_R2STARS
-    % P1 = [];
     P1 = zeros(N*NUM_FMS,N);
     idx = 1;
     for k = 1:NUM_FMS
         Psi = diag(exp(1i*2*pi*psis(k)*t - abs(t)*r2s(kr)));
-        % P1 = [ P1; (eye(N)-Psi*Phi*pinv(Psi*Phi))];
         P1(idx:idx+N-1,:) = eye(N) - Psi*Phi*pinv(Psi*Phi);
         idx = idx + N;
     end
     P(:,:,kr) = P1;
 end
-%%%%%% Changed by Jacob Degitz 10/17/2024 %%%%%%
 
 if verbose
     tttime = toc;
@@ -152,13 +147,10 @@ end
 
             temp = reshape(squeeze(permute(images(:,ky,:,:,:,ka),[1 2 3 5 4])),[sx N*C]).';
             temp = reshape(temp,[N sx*C]);
-            % for kr = 1:NUM_R2STARS
-            %     temp2(:,:,kr) = reshape(sum(abs(reshape(P(:,:,kr)*temp,[N C*NUM_FMS*sx])).^2,1),[NUM_FMS C*sx]).';
-            %     temp3(:,kr) = sum(reshape(temp2(:,:,kr),[C NUM_FMS*sx]),1);
-            % end
-            temp2 = permute(reshape(sum(abs(reshape(pagemtimes(P,temp),[N C*NUM_FMS*sx NUM_R2STARS])).^2,1),[NUM_FMS C*sx NUM_R2STARS]),[2 1 3]);
-            temp3 = squeeze(sum(reshape(temp2,[C NUM_FMS*sx NUM_R2STARS]),1));
-            %%%%%% Changed by Jacob Degitz 10/24/2024 %%%%%%
+            for kr = 1:NUM_R2STARS
+                temp2(:,:,kr) = reshape(sum(abs(reshape(P(:,:,kr)*temp,[N C*NUM_FMS*sx])).^2,1),[NUM_FMS C*sx]).';
+                temp3(:,kr) = sum(reshape(temp2(:,:,kr),[C NUM_FMS*sx]),1);
+            end
 
             [mint3,imint3] = min(temp3,[],2);
 
