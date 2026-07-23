@@ -50,6 +50,10 @@ if nargin <6
     DEBUG = 0;
 end
 
+if isfield(algoParams, 'seed')
+    rng(algoParams.seed)
+end
+
 SMOOTH_NOSIGNAL = true; % Whether to "homogenize" the lambdamap after
                      % some iterations, to get a smoother fieldmap in
                      % low-signal regions
