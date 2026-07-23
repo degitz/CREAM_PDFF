@@ -151,7 +151,7 @@ end
 
             [mint3,imint3] = min(temp3,[],2);
 
-            residual(:,:,ky) = squeeze(residual(:,:,ky)).' + reshape(mint3,[sx NUM_FMS]).';
+            residual(:,:,ky) = residual(:,:,ky) + reshape(mint3,[sx NUM_FMS]).';
 % $$$       r2array(:,:,ky,ka) = (reshape(r2s(imint3),[sx NUM_FMS])).';
         end
     end
