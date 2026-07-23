@@ -73,11 +73,11 @@ catch
   algoParams2.NUM_FMS = 301;
 end
 
-%%   - algoParams.NUM_ITERS = 40; % Number of graph cut iterations
+%%   - algoParams.MAX_ITERS = 40; % Number of graph cut iterations
 try
-  algoParams2.NUM_ITERS = algoParams.NUM_ITERS;
+  algoParams2.MAX_ITERS = algoParams.MAX_ITERS;
 catch 
-  algoParams2.NUM_ITERS = 40;
+  algoParams2.MAX_ITERS = 40;
 end
 
 %%   - algoParams.SUBSAMPLE = 2; % Spatial subsampling for field map estimation (for speed)

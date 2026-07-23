@@ -37,7 +37,7 @@ close all
 % algoParams.NUM_R2STARS = 16; % Numbre of R2* values for quantization
 % algoParams.NUM_FMS = 100; % Number of field map values to discretize also Num of Layers
 % 
-% algoParams.NUM_ITERS = 40; % Number of graph cut iterations
+% algoParams.MAX_ITERS = 40; % Number of graph cut iterations
 % algoParams.SUBSAMPLE = 1; % Spatial subsampling for field map estimation (for speed)
 % algoParams.DO_OT = 1; % 0,1 flag to enable optimization transfer descent (final stage of field map estimation)
 % algoParams.LMAP_POWER = 2; % Spatially-varying regularization (2 gives ~ uniformn resolution)

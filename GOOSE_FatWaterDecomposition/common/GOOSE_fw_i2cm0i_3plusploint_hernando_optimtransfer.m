@@ -69,7 +69,7 @@ images = permute(imDataParams.images,[1 2 5 4 6 3]);
 
 fm0 = algoParams.fieldmap;
 r2starmap = algoParams.r2starmap;
-NUM_ITERS = algoParams.OT_ITERS;
+MAX_ITERS = algoParams.OT_ITERS;
 lambdamap = algoParams.lambdamap;
 
 % Need to create my finite-difference matrix
@@ -133,7 +133,7 @@ D2data = spdiags(reshape(d2bound,[],1),0,sx*sy,sx*sy);
 curHessTotal = Dlambda'*Dlambda + D2data;
 
 fm = fm0;
-for kit = 1:NUM_ITERS
+for kit = 1:MAX_ITERS
   
   % Form the linear system... we need the gradient here
   d1 = zeros(sx,sy);

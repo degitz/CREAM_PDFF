@@ -32,7 +32,7 @@
 % 
 %   - algoParams.range_r2star = [0 0]; % Range of R2* values
 %   - algoParams.range_fm = [-400 400]; % Range of field map values
-%   - algoParams.NUM_ITERS = 40; % Number of descent iterations
+%   - algoParams.MAX_ITERS = 40; % Number of descent iterations
 %
 % Output: structure outParams
 %   - outParams.species(ii).name: name of the species (taken from algoParams)

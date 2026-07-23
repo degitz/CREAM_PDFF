@@ -63,11 +63,6 @@ if ~isfield(algoParams, 'NUM_FMS')
     algoParams2.NUM_FMS = 301;
 end
 
-%%   - algoParams.NUM_ITERS = 40; % Number of graph cut iterations
-if ~isfield(algoParams, 'NUM_ITERS')
-    algoParams2.NUM_ITERS = 40;
-end
-
 %%   - algoParams.SUBSAMPLE = 2; % Spatial subsampling for field map estimation (for speed)
 if ~isfield(algoParams, 'SUBSAMPLE')
     algoParams2.SUBSAMPLE = 1;
@@ -108,4 +103,47 @@ else
     imDataParams2.PrecessionIsClockwise = -1;
 end
 
+%%   - algoParams.gyro = 42.5774780505984; (gyromagnetic ratio of hydrogen-1)
+if ~isfield(algoParams, 'gyro')
+    algoParams2.gyro = 42.5774780505984;
+end
 
+%% - algoParams.fm_init (Binary flag (1->initial guess 0->no initial guess) to enable the use of an initial guess for the field inhomogeneity term )
+if ~isfield(algoParams, 'fm_init')
+    algoParams2.fm_init = 0;
+end
+
+%% - algoParams.dkg Number of iterations before switching to a more homogeneous regularization (to achieve more smoothness in noise-only regions)
+if ~isfield(algoParams, 'dkg')
+    algoParams2.dkg = 15;
+end
+
+%% - algoParams.SMOOTH_NOSIGNAL Binary flag to decide whether to "homogenize" the lambdamap after some iterations (to get a smoother fieldmap in low-signal regions)
+if ~isfield(algoParams, 'SMOOTH_NOSIGNAL')
+    algoParams2.SMOOTH_NOSIGNAL = true;
+end
+
+%% - algoParams.STARTBIG Binary flag to decide whether or not to start with big jump
+if ~isfield(algoParams, 'STARTBIG')
+    algoParams2.STARTBIG = true;
+end
+
+%%   - algoParams.MAX_ITERS = 40; % Maximum number of graph cut iterations
+if ~isfield(algoParams, 'MAX_ITERS')
+    algoParams2.MAX_ITERS = 40;
+end
+
+%%   - algoParams.MIN_ITERS = dkg + 5; % Minimum number of graph cut iterations before convergence can begin
+if ~isfield(algoParams, 'MIN_ITERS')
+    algoParams2.MIN_ITERS = algoParams2.dkg + 5;
+end
+
+%%   - algoParams.convTol = 40; % Relative energy-improvement tolerance
+if ~isfield(algoParams, 'convTol')
+    algoParams2.convTol = 1e-4;
+end
+
+%%   - algoParams.MIN_ITERS = 40; % Maximum number of stalled graph cut iterations before convergence
+if ~isfield(algoParams, 'MAX_STALLEDITERS')
+    algoParams2.MAX_STALLEDITERS = 5;
+end
