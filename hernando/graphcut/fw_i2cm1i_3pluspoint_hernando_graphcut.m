@@ -161,10 +161,6 @@ else
         algoParams.range_fm = [-num_periods*period (num_periods*period-period/NUM_FMS_ORIG)];
         fprintf('FieldMap Range: [%0.1f %0.1f]\n', algoParams.range_fm(1), algoParams.range_fm(2))
         fprintf('Number of Discrete FieldMap Values: %i\n', algoParams.NUM_FMS)
-        disp("range_fm")
-        disp(algoParams.range_fm)
-        disp("Num_FMS")
-        disp(algoParams.NUM_FMS)
     else
         % If not uniformly spaced TEs, get the residual for the whole range
         residual = computeResidual(imDataParams, algoParams, DEBUG);
