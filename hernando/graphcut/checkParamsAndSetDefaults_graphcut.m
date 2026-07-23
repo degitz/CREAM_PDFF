@@ -138,12 +138,12 @@ if ~isfield(algoParams, 'MIN_ITERS')
     algoParams2.MIN_ITERS = algoParams2.dkg + 5;
 end
 
-%%   - algoParams.convTol = 40; % Relative energy-improvement tolerance
+%%   - algoParams.convTol = 1e-4; % Relative energy-improvement tolerance
 if ~isfield(algoParams, 'convTol')
     algoParams2.convTol = 1e-4;
 end
 
-%%   - algoParams.MIN_ITERS = 40; % Maximum number of stalled graph cut iterations before convergence
+%%   - algoParams.MAX_STALLEDITERS = 5; % Maximum number of stalled graph cut iterations before convergence
 if ~isfield(algoParams, 'MAX_STALLEDITERS')
     algoParams2.MAX_STALLEDITERS = 5;
 end
