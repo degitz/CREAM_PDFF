@@ -159,6 +159,8 @@ else
         algoParams.NUM_FMS = 2*num_periods*algoParams.NUM_FMS;
         residual = repmat(residual,[2*num_periods 1 1]);
         algoParams.range_fm = [-num_periods*period (num_periods*period-period/NUM_FMS_ORIG)];
+        fprintf('FieldMap Range: [%0.1f %0.1f]\n', algoParams.range_fm(1), algoParams.range_fm(2))
+        fprintf('Number of Discrete FieldMap Values: %i\n', algoParams.NUM_FMS)
         disp("range_fm")
         disp(algoParams.range_fm)
         disp("Num_FMS")
