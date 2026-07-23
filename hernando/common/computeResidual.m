@@ -137,24 +137,21 @@ end
     % Go line-by-line in the image to avoid using too much memory, while
     % still reducing the loops significantly
     residual = zeros(NUM_FMS,sx,sy);
+    temp = permute(images,[1 2 3 5 4]);
     reverseStr = '';
     for ka = 1:num_acq
         for ky = 1:sy
-
             if verbose
                 reverseStr = UpdatePercent(ky/sy*100, reverseStr);
             end
 
-            temp = reshape(squeeze(permute(images(:,ky,:,:,:,ka),[1 2 3 5 4])),[sx N*C]).';
-            temp = reshape(temp,[N sx*C]);
-            for kr = 1:NUM_R2STARS
-                temp2(:,:,kr) = reshape(sum(abs(reshape(P(:,:,kr)*temp,[N C*NUM_FMS*sx])).^2,1),[NUM_FMS C*sx]).';
-                temp3(:,kr) = sum(reshape(temp2(:,:,kr),[C NUM_FMS*sx]),1);
-            end
+            temp1 = reshape(reshape(squeeze(temp(:,ky,:,:,ka,:)),[sx N*C]).',[N sx*C]);
+            temp2 = permute(reshape(sum(abs(reshape(pagemtimes(P,temp1),[N C*NUM_FMS*sx NUM_R2STARS])).^2,1),[NUM_FMS C*sx NUM_R2STARS]),[2 1 3]);
+            temp3 = squeeze(sum(reshape(temp2,[C NUM_FMS*sx NUM_R2STARS]),1));
 
             [mint3,imint3] = min(temp3,[],2);
 
-            residual(:,:,ky) = squeeze(squeeze(residual(:,:,ky)).' + reshape(mint3,[sx NUM_FMS])).';
+            residual(:,:,ky) = squeeze(residual(:,:,ky)).' + reshape(mint3,[sx NUM_FMS]).';
 % $$$       r2array(:,:,ky,ka) = (reshape(r2s(imint3),[sx NUM_FMS])).';
         end
     end
