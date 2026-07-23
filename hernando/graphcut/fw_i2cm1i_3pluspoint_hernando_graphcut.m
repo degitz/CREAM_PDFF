@@ -243,13 +243,14 @@ if DEBUG
     fprintf('Done (%.2f sec)', tttime)
 end
 
-% If Optimization Transfer is requested, do it now
-if DEBUG
-    tic
-    fprintf('\nPerforming optimization transfer...')
-end
-
 if DO_OT == 1
+
+    % If Optimization Transfer is requested, do it now
+    if DEBUG
+        tic
+        fprintf('\nPerforming optimization transfer...')
+    end
+
     imDataParams.fmGC = fm;
 
     algoParams.OT_ITERS = 10;
