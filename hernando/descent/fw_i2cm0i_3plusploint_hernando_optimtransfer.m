@@ -39,9 +39,11 @@
 % Date created: June 11, 2009
 % Date last modified: November 10, 2011
 
-function outParams = fw_i2cm0i_3plusploint_hernando_optimtransfer(imDataParams, algoParams)
+function outParams = fw_i2cm0i_3plusploint_hernando_optimtransfer(imDataParams, algoParams, DEBUG_MODE)
 
-DEBUG_MODE = false;
+if nargin < 3
+    DEBUG_MODE = true;
+end
 
 % Check validity of params, and set default algorithm parameters if not provided
 [validParams,algoParams] = checkParamsAndSetDefaults_graphcut(imDataParams,algoParams);
@@ -58,12 +60,7 @@ if imDataParams.PrecessionIsClockwise <= 0
 end
 
 % Get recon parameters and images
-if isfield(algoParams, 'gyro')
-    gyro = algoParams.gyro;
-else
-    gyro = 42.5774780505984;
-end
-deltaF = [0; gyro*(algoParams.species(2).frequency(:) - algoParams.species(1).frequency(1))*(imDataParams.FieldStrength)];
+deltaF = [0; algoParams.gyro*(algoParams.species(2).frequency(:) - algoParams.species(1).frequency(1))*(imDataParams.FieldStrength)];
 relAmps = algoParams.species(2).relAmps;
 range_fm = algoParams.range_fm;
 t = reshape(imDataParams.TE,[],1);
@@ -72,8 +69,12 @@ images = permute(imDataParams.images,[1 2 5 4 6 3]);
 
 fm0 = algoParams.fieldmap;
 r2starmap = algoParams.r2starmap;
-MAX_ITERS = algoParams.MAX_ITERS;
 lambdamap = algoParams.lambdamap;
+
+MAX_ITERS = algoParams.MAX_ITERS;
+MIN_ITERS       = algoParams.MIN_ITERS;
+convTol         = algoParams.OTconvTol;
+MAX_STALLEDITERS = algoParams.MAX_STALLEDITERS;
 
 % Need to create my finite-difference matrix
 if DEBUG_MODE
@@ -137,7 +138,11 @@ D2data = spdiags(reshape(d2bound,[],1),0,sx*sy,sx*sy);
 curHessTotal = Dlambda'*Dlambda + D2data;
 
 fm = fm0;
-for kit = 1:MAX_ITERS
+noImprove = 0;
+gradNormPrev = Inf;
+kit = 0;
+while kit < MAX_ITERS
+    kit = kit + 1;
 
     % Form the linear system... we need the gradient here
     d1 = zeros(sx,sy);
@@ -163,9 +168,33 @@ for kit = 1:MAX_ITERS
     % Update field map
     fm = fm + reshape(fmstep,sx,sy);
 
+    % Check for convergence
+    gradNorm = norm(curGradTotal);
+    relImprove = abs(gradNormPrev - gradNorm)/(gradNormPrev + eps);
+    if kit > MIN_ITERS && relImprove < convTol
+        noImprove = noImprove + 1;
+    else
+        noImprove = 0;
+    end
+    gradNormPrev = gradNorm;
+
     if DEBUG_MODE
-        curroughness = norm(Dlambda*fm(:)) %#ok<UNRCH>
-        imagesc(reshape(fm,sx,sy),[-150 150]);drawnow
+        % fprintf('%i, %.3e, %.3e, %.3e, %i\n', kit, relImprove, norm(Dlambda*fm(:)), flag)
+        figure(201)
+        imagesc(fm)
+        axis image
+        axis off
+        title({['Iteration: ' num2str(kit) ', relativeImprovement: ' num2str(relImprove)]; [num2str(noImprove) ' iters since improvement']},'FontSize',12);
+        colormap gray
+        colorbar
+        drawnow
+    end
+
+    if noImprove >= MAX_STALLEDITERS
+        if DEBUG_MODE
+            fprintf('Converged at iter %d; grad norm %.4e\n', kit, gradNorm);
+        end
+        break
     end
 end
 

@@ -53,7 +53,7 @@ STARTBIG = algoParams.STARTBIG;
 dkg = algoParams.dkg;
 plot_debug = algoParams.plot_debug;
 MIN_ITERS = algoParams.MIN_ITERS;
-convTol = algoParams.convTol;
+convTol = algoParams.GCconvTol;
 MAX_STALLEDITERS = algoParams.MAX_STALLEDITERS;
 
 % Initialize some auxiliary variables
@@ -205,18 +205,17 @@ while kg < algoParams.MAX_ITERS
     end
 
     if plot_debug
-        fprintf('%i, %.4e, %i\n', kg, relImprove, noImprove)
         % If we want to see the fieldmap at each step
         if strcmp(PTYPE,'Bipolar_GC')
             figure(100)
         else
-            figure
+            figure(200)
         end
         imagesc(fm)
         axis image
         axis off
         % clim(algoParams.range_fm)
-        title(['Iteration: ' num2str(kg)],'FontSize',12);
+        title({sprintf('Iteration: %i, er = %0.3e', kg, relImprove);[num2str(noImprove) ' iters since improvement']},'FontSize',12);
         colormap gray
         colorbar
         try
