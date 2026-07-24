@@ -72,9 +72,8 @@ r2starmap = algoParams.r2starmap;
 lambdamap = algoParams.lambdamap;
 
 MAX_ITERS = algoParams.MAX_ITERS;
-MIN_ITERS       = algoParams.MIN_ITERS;
-convTol         = algoParams.OTconvTol;
-MAX_STALLEDITERS = algoParams.MAX_STALLEDITERS;
+MIN_ITERS = algoParams.MIN_ITERS;
+convTol   = algoParams.OTconvTol;
 
 % Need to create my finite-difference matrix
 if DEBUG_MODE
@@ -138,7 +137,6 @@ D2data = spdiags(reshape(d2bound,[],1),0,sx*sy,sx*sy);
 curHessTotal = Dlambda'*Dlambda + D2data;
 
 fm = fm0;
-noImprove = 0;
 gradNormPrev = Inf;
 kit = 0;
 while kit < MAX_ITERS
@@ -168,14 +166,9 @@ while kit < MAX_ITERS
     % Update field map
     fm = fm + reshape(fmstep,sx,sy);
 
-    % Check for convergence
+    % Calculate convergence parameters
     gradNorm = norm(curGradTotal);
     relImprove = abs(gradNormPrev - gradNorm)/(gradNormPrev + eps);
-    if kit > MIN_ITERS && relImprove < convTol
-        noImprove = noImprove + 1;
-    else
-        noImprove = 0;
-    end
     gradNormPrev = gradNorm;
 
     if DEBUG_MODE
@@ -184,13 +177,14 @@ while kit < MAX_ITERS
         imagesc(fm)
         axis image
         axis off
-        title({['Iteration: ' num2str(kit) ', relativeImprovement: ' num2str(relImprove)]; [num2str(noImprove) ' iters since improvement']},'FontSize',12);
+        title({['Iteration: ' num2str(kit)]; ['relativeImprovement: ' num2str(relImprove)]},'FontSize',12);
         colormap gray
         colorbar
         drawnow
     end
 
-    if noImprove >= MAX_STALLEDITERS
+    % Check for convergence
+    if kit > MIN_ITERS && relImprove < convTol
         if DEBUG_MODE
             fprintf('Converged at iter %d; grad norm %.4e\n', kit, gradNorm);
         end
